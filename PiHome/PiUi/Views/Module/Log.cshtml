@@ -1,0 +1,20 @@
+﻿@model LogViewModel
+
+@{
+    ViewBag.Title = Model.Module.Module.Name + "-Logs";
+    Layout = "_Layout";
+}
+
+<h2>Logs for feature @Model.Feature.Name</h2>
+@Html.BeginForm(FormMethod.Get)
+{
+    <input type="hidden" name="moduleId" value="@Model.Module.Module.Id" />
+    <input type="hidden" name="featureId" value="@Model.Feature.Id" />
+    <label>From</label>
+    <input type="datetime" name="from" />
+    <label>To</label>
+    <input type="datetime" name="to" />
+    <input type="submit" value="Load" />
+}
+<br />
+
