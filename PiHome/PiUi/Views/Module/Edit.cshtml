@@ -1,0 +1,108 @@
+﻿@model EditModuleViewModel
+
+@{
+    ViewBag.Title = "Update Module";
+    Layout = "_Layout";
+}
+
+<h2>Update Module</h2>
+@Html.ActionLink("Delete", "Delete", Model.ModuleId)
+<h3>Data</h3>
+@using (Html.BeginForm("Edit", "Module", FormMethod.Post))
+{
+    <table>
+        <tr>
+            <td>Name</td>
+            <td>@Html.TextBoxFor(x => x.ModuleName)</td>
+        </tr>
+        <tr>
+            <td>Ip</td>
+            <td>@Html.TextBoxFor(x => x.Ip)</td>
+        </tr>
+        <tr>
+            <td>
+                <button type="submit">Save</button>
+            </td>
+        </tr>
+    </table>
+}
+<h3>Current Features</h3>
+<table>
+    <tr>
+        <td>Name</td>
+        <td></td>
+    </tr>
+    @foreach (var feature in Model.CurrentFeatures)
+    {
+        <tr>
+            @using (Html.BeginForm("DeleteFeature", "Module", FormMethod.Post))
+            {
+            <td>
+                <input type="hidden" name="ModuleId" value="@Model.ModuleId" />
+                <input type="hidden" name="FeatureToRemove" value="@feature.Id" />
+                <label>@feature.Name</label>
+            </td>
+                <td>
+                    <button type="submit">Remove</button>
+                </td>
+
+            }
+        </tr>
+    }
+</table>
+<h3>Possible Features</h3>
+<table>
+    <tr>
+        <td>Name</td>
+        <td>Interval</td>
+        <td></td>
+    </tr>
+    @foreach (var feature in Model.PossibleFeatures)
+    {
+        <tr>
+            @using (Html.BeginForm("AddFeature", "Module", FormMethod.Post))
+            {
+            <td>
+                <input type="hidden" name="ModuleId" value="@Model.ModuleId" />
+                <input type="hidden" name="FeatureToAdd" value="@feature.Id" />
+                <label>@feature.Name</label>
+            </td>
+                <td>
+                    @Html.TextBoxFor(x => x.Interval)
+                </td>
+                <td>
+                    <button type="submit">Add</button>
+                </td>
+
+            }
+        </tr>
+    }
+</table>
+<h3>Leds</h3>
+@using (Html.BeginForm("AddStrip", "Module", FormMethod.Post))
+{
+<table>
+    <tr>
+        <input type="hidden" name="ModuleId" value="@Model.ModuleId" />
+        <td>Start index</td>
+        <td>@Html.TextBoxFor(x => x.StartIndex)</td>
+    </tr>
+    <tr>
+        <td>Start Position</td>
+        <td>@Html.TextBoxFor(x => x.StartX)|@Html.TextBoxFor(x => x.StartY)</td>
+    </tr>
+    <tr>
+        <td>End index</td>
+        <td>@Html.TextBoxFor(x => x.EndIndex)</td>
+    </tr>
+    <tr>
+        <td>End Position</td>
+        <td>@Html.TextBoxFor(x => x.EndX)|@Html.TextBoxFor(x => x.EndY)</td>
+    </tr>
+    <tr>
+        <td>
+            <button type="submit">Add</button>
+        </td>
+    </tr>
+</table>
+}

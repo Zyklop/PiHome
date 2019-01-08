@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PiApi", "PiApi\PiApi.pyproj", "{8F351D6F-64A4-419D-99A9-2E352EAA8CC6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PiUi", "PiUi\PiUi.csproj", "{E591E07A-99E8-4EFE-919A-78A555E47D7F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataPersistance", "DataPersistance\DataPersistance.csproj", "{C94D46B8-FF0C-49E2-A6D4-600093C200AB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Communication", "Communication\Communication.csproj", "{58D4204B-169B-42F7-8C9D-8BE9BB9057B3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coordinator", "Coordinator\Coordinator.csproj", "{8DB9D93A-7B79-44EC-B72B-91FAA2104ED1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Db", "Db", "{86F65508-D578-4D8F-A25D-005E04C57C14}"
+	ProjectSection(SolutionItems) = preProject
+		DB\CreateScript.sql = DB\CreateScript.sql
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8F351D6F-64A4-419D-99A9-2E352EAA8CC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F351D6F-64A4-419D-99A9-2E352EAA8CC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F351D6F-64A4-419D-99A9-2E352EAA8CC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F351D6F-64A4-419D-99A9-2E352EAA8CC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E591E07A-99E8-4EFE-919A-78A555E47D7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E591E07A-99E8-4EFE-919A-78A555E47D7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E591E07A-99E8-4EFE-919A-78A555E47D7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E591E07A-99E8-4EFE-919A-78A555E47D7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C94D46B8-FF0C-49E2-A6D4-600093C200AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C94D46B8-FF0C-49E2-A6D4-600093C200AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C94D46B8-FF0C-49E2-A6D4-600093C200AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C94D46B8-FF0C-49E2-A6D4-600093C200AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58D4204B-169B-42F7-8C9D-8BE9BB9057B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58D4204B-169B-42F7-8C9D-8BE9BB9057B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58D4204B-169B-42F7-8C9D-8BE9BB9057B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58D4204B-169B-42F7-8C9D-8BE9BB9057B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB9D93A-7B79-44EC-B72B-91FAA2104ED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB9D93A-7B79-44EC-B72B-91FAA2104ED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB9D93A-7B79-44EC-B72B-91FAA2104ED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB9D93A-7B79-44EC-B72B-91FAA2104ED1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {27C8DD7A-6AFF-4672-88AB-F0DCE5D8E9F4}
+	EndGlobalSection
+EndGlobal

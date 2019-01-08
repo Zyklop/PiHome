@@ -1,0 +1,205 @@
+﻿@model PiUi.Models.PresetViewModel
+
+@{
+    ViewBag.Title = "PresetCreator";
+    Layout = "_Layout";
+    ViewBag.OnLoad = "init()";
+}
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@functions{
+    public string GetAntiXsrfRequestToken()
+    {
+        return Xsrf.GetAndStoreTokens(Context).RequestToken;
+    }
+}
+<input type="hidden" id="RequestVerificationToken"
+       name="RequestVerificationToken" value="@GetAntiXsrfRequestToken()">
+
+<h2>Preset Editor</h2>
+
+<table>
+    <tr>
+        <td>
+            <div>
+                <label for="radius">Radius</label>
+                <input type="range" id="radius" name="radius"
+                       min="10" max="300" value="10" onchange="setRadius(this.value)">
+            </div>
+        </td>
+        <td>
+            <div>
+                <label for="brightness">Brightness</label>
+                <input type="range" id="brightness" name="brightness"
+                       min="0" max="100" value="100" onchange="setBrightness(this.value)">
+            </div>
+        </td>
+        <td>
+            <div>
+                <label for="red">Red</label>
+                <input type="range" id="red" name="red"
+                       min="0" max="255" value="0" onchange="setRed(this.value)">
+            </div>
+        </td>
+        <td>
+            <div>
+                <label for="green">Green</label>
+                <input type="range" id="green" name="green"
+                       min="0" max="255" value="0" onchange="setGreen(this.value)">
+            </div>
+        </td>
+        <td>
+            <div>
+                <label for="blue">Blue</label>
+                <input type="range" id="blue" name="blue"
+                       min="0" max="255" value="0" onchange="setBlue(this.value)">
+            </div>
+        </td>
+    </tr>
+</table>
+<canvas id="can" width="800" height="400"></canvas>
+<br />
+<input type="text" value="@Model.Name" oninput="setName(this.value)" />
+<input type="button" value="preview" id="preview" size="30" onclick="preview()">
+<input type="button" value="save" id="save" size="30" onclick="save()">
+
+<script type="text/javascript">
+    var canvas,
+        ctx,
+        flag = false,
+        currX = 0,
+        currY = 0,
+        radius = 10,
+        scaleX = 1.0,
+        scaleY = 1.0,
+        r = 0,
+        g = 0,
+        b = 0,
+        bright = 100,
+        name = '@Model.Name',
+        leds = @Html.Raw(Json.Serialize(Model.LedValues));
+
+
+    function init() {
+        canvas = document.getElementById('can');
+        ctx = canvas.getContext("2d");
+        w = canvas.width;
+        h = canvas.height;
+        scaleX = w / @(Model.LedValues.Max(x => x.X) + 10);
+        scaleY = h / @(Model.LedValues.Max(x => x.Y) + 10);
+
+        canvas.addEventListener("mousemove", function (e) {
+            findxy('move', e)
+        }, false);
+        canvas.addEventListener("mousedown", function (e) {
+            findxy('down', e)
+        }, false);
+        canvas.addEventListener("mouseup", function (e) {
+            findxy('up', e)
+        }, false);
+        canvas.addEventListener("mouseout", function (e) {
+            findxy('out', e)
+        }, false);
+    }
+
+    function setName(value) {
+        name = value;
+    }
+
+    function setRadius(value) {
+        radius = value;
+    }
+
+    function setBrightness(value) {
+        bright = value;
+    }
+
+    function setRed(value) {
+        r = value;
+    }
+
+    function setGreen(value) {
+        g = value;
+    }
+
+    function setBlue(value) {
+        b = value;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (var i = 0; i < leds.length; i++) {
+            var led = leds[i];
+            ctx.fillStyle = 'rgb(' + led.color.r + ', ' + led.color.g + ', ' + led.color.b + ')';
+            ctx.fillRect(led.x * scaleX, led.y * scaleY, 2, 2);
+        }
+        var circle = new Path2D();
+        circle.arc(currX, currY, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = 'red';
+        ctx.stroke(circle);
+    }
+
+    function save() {
+        postModel('Save');
+    }
+
+    function preview() {
+        postModel('Preview');
+    }
+
+    function postModel(method) {
+        var data = { name: name, ledValues: leds };
+        var url = '/Preset/' + method;
+        return fetch(url,
+            {
+                method: "POST",
+                mode: "cors", // no-cors, cors, *same-origin
+                cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+                credentials: "same-origin", // include, *same-origin, omit
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "RequestVerificationToken": document.getElementById('RequestVerificationToken').value
+                },
+                redirect: "manual",
+                referrer: "no-referrer",
+                body: JSON.stringify(data)
+            });
+    }
+
+    function findxy(res, e) {
+        currX = e.clientX - canvas.offsetLeft;
+        currY = e.clientY - canvas.offsetTop;
+        if (res == 'down') {
+
+            flag = true;
+
+            update();
+        }
+        if (res == 'up' || res == "out") {
+            flag = false;
+        }
+        if (res == 'move') {
+            if (flag) {
+                update();
+            }
+            draw();
+        }
+    }
+
+    function update() {
+        var squaredRadius = radius * radius;
+        for (var i = 0; i < leds.length; i++) {
+            var led = leds[i];
+            var squaredDist = currX - led.x * scaleX;
+            squaredDist *= squaredDist;
+            var dy = currY - led.y * scaleY;
+            squaredDist += dy * dy;
+            if (squaredDist < squaredRadius)
+            {
+                led.color.Brightness = bright;
+                led.color.r = r;
+                led.color.g = g;
+                led.color.b = b;
+            }
+        }
+    }
+</script>

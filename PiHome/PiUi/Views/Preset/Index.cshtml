@@ -1,0 +1,20 @@
+﻿@model PiUi.Models.PresetOverview
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+
+<h2>Overview</h2>
+
+@Html.ActionLink("Add", "Create")
+
+@foreach (var preset in Model.Presets)
+{
+    <li>
+        @Html.Label("", preset)
+        @Html.ActionLink("Activate", "Activate", "Preset", new {name = preset})
+        @Html.ActionLink("Edit", "Edit", "Preset", new { name = preset })
+        @Html.ActionLink("Delete", "Delete", "Preset", new { name = preset })
+    </li>
+}

@@ -1,0 +1,44 @@
+﻿@model ModuleViewModel
+
+@{
+    ViewBag.Title = "Module Overview";
+    Layout = "_Layout";
+}
+
+<h2>Module Overview</h2>
+@Html.ActionLink("Add", "Create")
+<table>
+    <tr>
+    <td>
+        @Html.Label("Name")
+    </td>
+    <td>
+        @Html.Label("Direct Link")
+    </td>
+    <td>
+        @Html.Label("Detail")
+    </td>
+    <td>
+        @Html.Label("Edit")
+    </td>
+    @foreach (var module in Model.ExtendedModules)
+    {
+        <tr>
+            <td>
+                @Html.Label(module.Module.Name)
+            </td>
+            <td>
+                @if (!module.IsLocal)
+                {
+                    <a href=@($"http://{module.Module.Ip}:5000")>Connect</a>
+                }
+            </td>
+            <td>
+                @Html.ActionLink("Detail", "Details", new {module.Module.Id})
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new {module.Module.Id})
+            </td>
+        </tr>
+    }
+</table>

@@ -1,0 +1,34 @@
+﻿@model DetailModuleViewModel
+
+@{
+    ViewBag.Title = "Module Details";
+    Layout = "_Layout";
+}
+
+<h2>Module Details</h2>
+
+<table>
+    <tr>
+        <td>
+            @Html.Label("Feature")
+        </td>
+        <td>
+            @Html.Label("Value")
+        </td>
+    </tr>
+    @foreach (var value in Model.Values)
+    {
+        <tr>
+            <td>
+                @Html.ActionLink(value.Feature.Name, "Log", new
+                {
+                    moduleId = Model.Module.Module.Id,
+                    featureId = value.Feature.Id
+                })
+            </td>
+            <td>
+                <label>@value.Lastvalue</label>
+            </td>
+        </tr>
+    }
+</table>

@@ -1,0 +1,8 @@
+Flask<1
+Adafruit_GPIO
+pypozyx
+picamera
+RPi.GPIO
+Adafruit_ADS1x15
+pi_si7021
+pigpio
