@@ -18,11 +18,11 @@
 }
 <br />
 <div id="logChart" style="width: 100%; height: 600px;"/>
-<script src="js/plotly-latest.min.js" type="text/javascript"></script>
+<script src="/js/plotly-latest.min.js" type="text/javascript"></script>
 <script type="text/javascript">
-    var trace1 = {
-        x: [@string.Join(',', Model.Values.Values.Select(x => $"\'{x.time.ToString("s")}\'"))],
-        y: [@string.Join(',', Model.Values.Values.Select(x => x.value.ToString("##.00") + Model.Values.Unit))],
+    var trace = {
+        x: [@Html.Raw(string.Join(',', Model.Values.Values.Select(x => $"\'{x.time.ToString("s")}\'")))],
+        y: [@Html.Raw(string.Join(',', Model.Values.Values.Select(x => x.value.ToString("##.00") + Model.Values.Unit)))],
         mode: 'lines',
         type: 'scatter',
         name: '@Model.Feature.Name'
