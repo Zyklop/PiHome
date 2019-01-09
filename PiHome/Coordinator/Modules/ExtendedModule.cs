@@ -97,7 +97,7 @@ namespace Coordinator.Modules
 			var res = new Dictionary<int, double>();
 			foreach (var logConfiguration in configs)
 			{
-				res.Add(logConfiguration.FeatureId, GetValue(logConfiguration.FeatureId));
+				res.Add(logConfiguration.Id, GetValue(logConfiguration.FeatureId));
 			}
 			logRepo.LogData(res);
 		}
