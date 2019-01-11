@@ -64,9 +64,9 @@ namespace Coordinator.Modules
 		public LogValues GetLogValuesForRange(int featureId, DateTime from, DateTime to, int granularity = 100)
 		{
 			var allLogs = logRepo.GetLogs(Module.Id, featureId, from, to);
-			var tsInterval = to - from;
+			var tsInterval = allLogs.Max(x => x.Time) - allLogs.Min(x => x.Time);
 			tsInterval /= granularity;
-			var nextsplit = from.Add(tsInterval);
+			var nextsplit = from;
 			var feature = Features.Single(x => x.Id == featureId);
 			var res = new LogValues
 			{
@@ -76,7 +76,14 @@ namespace Coordinator.Modules
 			};
 			foreach (var log in allLogs)
 			{
-				//todo transform 
+				if (log.Time >= nextsplit)
+				{
+					res.Values.Add((time:log.Time, value:Math.Round(log.Value / (decimal)feature.LogFactor, 4)));
+					while (nextsplit <= log.Time)
+					{
+						nextsplit += tsInterval;
+					}
+				}
 			}
 
 			return res;
@@ -97,7 +104,7 @@ namespace Coordinator.Modules
 			var res = new Dictionary<int, double>();
 			foreach (var logConfiguration in configs)
 			{
-				res.Add(logConfiguration.FeatureId, GetValue(logConfiguration.FeatureId));
+				res.Add(logConfiguration.Id, GetValue(logConfiguration.FeatureId));
 			}
 			logRepo.LogData(res);
 		}

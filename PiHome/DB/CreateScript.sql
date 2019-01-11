@@ -187,7 +187,7 @@ INSERT INTO public."Feature"(
 
 INSERT INTO public."Feature"(
 	"Id", "Name", "Unit", "LogFactor")
-	VALUES (2, 'Humidity', '%', 1.0);
+	VALUES (2, 'Humidity', '%', 100.0);
 
 INSERT INTO public."Feature"(
 	"Id", "Name", "Unit", "LogFactor")
