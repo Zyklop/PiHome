@@ -27,7 +27,7 @@ namespace Communication.Networking
 		{
 			var ser = JsonConvert.SerializeObject(data);
 			var b = Encoding.UTF8.GetBytes(ser);
-			_client.Send(b, b.Length, "255.255.255.255", _port);
+			_client.Send(b, b.Length, IPAddress.Broadcast.ToString(), _port);
 		}
 
 		public void Listen()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using DataPersistance.Models;
 using Microsoft.EntityFrameworkCore;
@@ -32,9 +33,15 @@ namespace DataPersistance.Modules
 
 		public void AddLedValues(IEnumerable<LedValue> values)
 		{
+			var leds = values.ToArray();
+			if (leds.Any(x => x.NeedsEnriching()))
+			{
+				var pr = new PresetRepository();
+				pr.EnrichLedValues(ref leds);
+			}
 			using (var context = new PiHomeContext())
 			{
-				foreach (var ledValue in values)
+				foreach (var ledValue in leds)
 				{
 					context.Led.Add(new Led
 					{
@@ -69,6 +76,16 @@ namespace DataPersistance.Modules
 					Interval = interval,
 					NextPoll = DateTime.UtcNow
 				});
+				context.SaveChanges();
+			}
+		}
+
+		public void UpdateIp(int moduleId, IPAddress moduleIp)
+		{
+			using (var context = new PiHomeContext())
+			{
+				var module = context.Module.Single(x => x.Id == moduleId);
+				module.Ip = moduleIp;
 				context.SaveChanges();
 			}
 		}

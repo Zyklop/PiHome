@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using DataPersistance.Models;
 using Communication.ApiCommunication;
@@ -127,6 +128,7 @@ namespace Coordinator.Modules
 				{
 					Index = startIndex + i,
 					ModuleId = Module.Id,
+					ModuleName = Module.Name,
 					X = startX + xdiff * i,
 					Y = startY + ydiff * i
 				});
@@ -142,6 +144,11 @@ namespace Coordinator.Modules
 			{
 				mn.ModuleChanges();
 			}
+		}
+
+		public void UpdateIp(IPAddress moduleIp)
+		{
+			mf.UpdateIp(Module.Id, moduleIp);
 		}
 	}
 

@@ -55,6 +55,19 @@ namespace PiUi.Controllers
 		    return RedirectToAction("Index");
 	    }
 
+		[IgnoreAntiforgeryToken]
+		public ActionResult GetAllPresets()
+		{
+			var presets = ledController.GetAllPresets();
+			return Json(presets);
+		}
+
+	    public ActionResult Get(string name)
+	    {
+		    var data = ledController.GetPreset(name);
+		    return Json(data.Values.SelectMany(x => x).ToArray());
+	    }
+
 		// POST: Preset/Edit/5
 		[HttpPost]
         [ValidateAntiForgeryToken]

@@ -51,10 +51,15 @@ namespace DataPersistance.Modules
 			}
 		}
 
-		public void SavePreset(string name, IEnumerable<LedValue> leds)
+		public void SavePreset(string name, IEnumerable<LedValue> ledValues)
 		{
+			var leds = ledValues.ToArray();
 			using (var context = new PiHomeContext())
 			{
+				if (leds.Any(x => x.NeedsEnriching()))
+				{
+					EnrichLedValues(ref leds);
+				}
 				var preset = context.LedPreset.Include(x => x.LedPresetValues).SingleOrDefault(x => x.Name == name);
 				using (var trans = context.Database.BeginTransaction())
 				{
@@ -98,6 +103,21 @@ namespace DataPersistance.Modules
 			}
 		}
 
+		public void EnrichLedValues(ref LedValue[] leds)
+		{
+			using (var context = new PiHomeContext())
+			{
+				var modules = context.Module.AsNoTracking().ToDictionary(x => x.Name, x => x.Id);
+				var ledsFromDb = context.Led.AsTracking().GroupBy(x => x.ModuleId).ToDictionary(x => x.Key, x => x.ToDictionary(y => y.Index, y => y.Id));
+				foreach (var ledValue in leds)
+				{
+					var moduleId = modules[ledValue.ModuleName];
+					ledValue.ModuleId = moduleId;
+					ledValue.Id = ledsFromDb[moduleId][ledValue.Index];
+				}
+			}
+		}
+
 		public void DeletePreset(string name)
 		{
 			using (var context = new PiHomeContext())
@@ -113,10 +133,22 @@ namespace DataPersistance.Modules
 	{
 		public int Index { get; set; }
 		public int ModuleId { get; set; }
+		public string ModuleName { get; set; }
 		public Color Color { get; set; }
 		public int Id { get; set; }
 		public double X { get; set; }
 		public double Y { get; set; }
+
+		public void StripForTransfer()
+		{
+			ModuleId = -1;
+			Id = -1;
+		}
+
+		public bool NeedsEnriching()
+		{
+			return ModuleId == -1 || Id == -1;
+		}
 	}
 
 	public class Color

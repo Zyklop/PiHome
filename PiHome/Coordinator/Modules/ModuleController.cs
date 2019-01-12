@@ -19,11 +19,10 @@ namespace Coordinator.Modules
 				if (moduleCache == null)
 				{
 					var features = mf.GetFeatures();
-					var localIps = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces().SelectMany(x => x.GetIPProperties().UnicastAddresses).Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
 					moduleCache = mf.GetAllModules().Select(x =>
 					{
 						var currentFeatures = features.Where(y => x.FeatureIds.Contains(y.Id));
-						return new ExtendedModule(x, currentFeatures, localIps.Any(y => y.Address.Equals(x.Ip)));
+						return new ExtendedModule(x, currentFeatures, x.Ip.Equals(IPAddress.Loopback));
 					}).ToList();
 				}
 				return moduleCache;

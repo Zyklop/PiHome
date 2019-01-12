@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Communication.ApiCommunication;
+using Communication.Networking;
 using DataPersistance.Models;
 using DataPersistance.Modules;
 
@@ -11,6 +12,7 @@ namespace Coordinator.Modules
 	{
 		private PresetRepository repo;
 		private ModuleFactory mf = new ModuleFactory();
+		private ModuleController mc = new ModuleController();
 
 		public LedController()
 		{
@@ -35,11 +37,19 @@ namespace Coordinator.Modules
 		public void SavePreset(string name, IEnumerable<LedValue> leds)
 		{
 			repo.SavePreset(name, leds);
+			using (var mn = new MasterNetworker(mc.GetCurrentModule().Module.Name))
+			{
+				mn.PresetChanges(name);
+			}
 		}
 
 		public void DeletePreset(string name)
 		{
 			repo.DeletePreset(name);
+			using (var mn = new MasterNetworker(mc.GetCurrentModule().Module.Name))
+			{
+				mn.PresetDeleted(name);
+			}
 		}
 
 		public void Activate(string name)

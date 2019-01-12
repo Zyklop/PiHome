@@ -70,7 +70,13 @@ namespace Communication.Networking
 
 			if (e.Data.Type == "PresetChange")
 			{
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = e.Data.ModuleName, Type = ChangeType.Preset, PresetName = e.Data.PresetName });
+				OnChange?.Invoke(this, new ChangeDetectedEventArgs
+				{
+					ModuleIp = e.Ip,
+					ModuleName = e.Data.ModuleName,
+					Type = e.Data.Deleted ? ChangeType.PresetDeleted : ChangeType.PresetUpserted,
+					PresetName = e.Data.PresetName
+				});
 			}
 			else if (e.Data.Type == "ModuleChange")
 			{
@@ -80,20 +86,41 @@ namespace Communication.Networking
 
 		public void Announce()
 		{
-			_multi?.Send(new ModuleAnnouncment{ModuleName = _moduleName});
-			_broad?.Send(new ModuleAnnouncment { ModuleName = _moduleName });
+			if (string.IsNullOrEmpty(_moduleName))
+			{
+				throw new ArgumentException("Modulename is not allowed to be empty");
+			}
+			_multi?.Send(new ModuleAnnouncment {ModuleName = _moduleName});
+			_broad?.Send(new ModuleAnnouncment {ModuleName = _moduleName});
 		}
 
 		public void ModuleChanges()
 		{
-			_multi?.Send(new ModuleChanged { ModuleName = _moduleName });
-			_broad?.Send(new ModuleChanged { ModuleName = _moduleName });
+			if (string.IsNullOrEmpty(_moduleName))
+			{
+				throw new ArgumentException("Modulename is not allowed to be empty");
+			}
+			_multi?.Send(new ModuleChanged {ModuleName = _moduleName});
+			_broad?.Send(new ModuleChanged {ModuleName = _moduleName});
 		}
 
 		public void PresetChanges(string presetName)
 		{
-			_multi?.Send(new PresetChanged { ModuleName = _moduleName, PresetName = presetName });
-			_broad?.Send(new PresetChanged { ModuleName = _moduleName, PresetName = presetName });
+			if (string.IsNullOrEmpty(_moduleName))
+			{
+				throw new ArgumentException("Modulename is not allowed to be empty");
+			}
+			_multi?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName});
+			_broad?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName});
+		}
+		public void PresetDeleted(string presetName)
+		{
+			if (string.IsNullOrEmpty(_moduleName))
+			{
+				throw new ArgumentException("Modulename is not allowed to be empty");
+			}
+			_multi?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName, Deleted = true});
+			_broad?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName, Deleted = true});
 		}
 
 		public event EventHandler<ChangeDetectedEventArgs> OnChange; 
@@ -109,6 +136,7 @@ namespace Communication.Networking
 			public string Type => "PresetChange";
 			public string PresetName { get; set; }
 			public string ModuleName { get; set; }
+			public bool Deleted { get; set; }
 		}
 
 		private class ModuleChanged
@@ -142,6 +170,7 @@ namespace Communication.Networking
 	{
 		ModuleAddress,
 		ModuleSettings,
-		Preset
+		PresetUpserted,
+		PresetDeleted
 	}
 }
