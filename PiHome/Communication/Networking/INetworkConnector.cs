@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace Coordinator.Networking
+namespace Communication.Networking
 {
 	public interface INetworkConnector
 	{

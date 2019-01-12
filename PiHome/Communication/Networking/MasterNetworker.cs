@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace Coordinator.Networking
+namespace Communication.Networking
 {
-	public class MasterNetworker
+	public class MasterNetworker : IDisposable
 	{
 		private static BroadcastConnector _broad;
 		private static MulticastConnector _multi;
@@ -115,6 +115,18 @@ namespace Coordinator.Networking
 		{
 			public string Type => "ModuleChange";
 			public string ModuleName { get; set; }
+		}
+
+		public void Dispose()
+		{
+			if (_multi != null)
+			{
+				_multi.OnDataRecived -= MessageRecived;
+			}
+			if (_broad != null)
+			{
+				_broad.OnDataRecived -= MessageRecived;
+			}
 		}
 	}
 

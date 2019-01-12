@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using DataPersistance.Models;
 using Communication.ApiCommunication;
+using Communication.Networking;
 using DataPersistance.Modules;
 
 namespace Coordinator.Modules
@@ -137,6 +138,10 @@ namespace Coordinator.Modules
 		{
 			var ts = TimeSpan.Parse(interval);
 			mf.AddFeature(Module.Id, featureId, ts);
+			using (var mn = new MasterNetworker(Module.Name))
+			{
+				mn.ModuleChanges();
+			}
 		}
 	}
 
