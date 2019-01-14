@@ -49,7 +49,7 @@ namespace Coordinator.Modules
 			return Modules.FirstOrDefault(x => x.IsLocal);
 		}
 
-		public void AddModule(string name, string ip)
+		public void AddModule(string name, string ip = "127.0.0.1")
 		{
 			mf.AddModule(new Module
 			{

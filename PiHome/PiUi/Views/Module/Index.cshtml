@@ -6,7 +6,6 @@
 }
 
 <h2>Module Overview</h2>
-@Html.ActionLink("Add", "Create")
 <table>
     <tr>
     <td>
@@ -17,9 +16,6 @@
     </td>
     <td>
         @Html.Label("Detail")
-    </td>
-    <td>
-        @Html.Label("Edit")
     </td>
     @foreach (var module in Model.ExtendedModules)
     {
@@ -32,12 +28,13 @@
                 {
                     <a href=@($"http://{module.Module.Ip}:5000")>Connect</a>
                 }
+                else
+                {
+                    @Html.ActionLink("Edit", "Edit", new { module.Module.Id })
+                }
             </td>
             <td>
                 @Html.ActionLink("Detail", "Details", new {module.Module.Id})
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new {module.Module.Id})
             </td>
         </tr>
     }

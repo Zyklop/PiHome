@@ -48,7 +48,7 @@ namespace PiUi.Services
 					break;
 				case ChangeType.PresetUpserted:
 					var preset = module.DownloadPreset(e.PresetName);
-					lc.SavePreset(e.PresetName, preset);
+					lc.SavePreset(preset);
 					break;
 				case ChangeType.PresetDeleted:
 					lc.DeletePreset(e.PresetName);

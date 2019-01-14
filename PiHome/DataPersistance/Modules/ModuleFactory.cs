@@ -34,11 +34,6 @@ namespace DataPersistance.Modules
 		public void AddLedValues(IEnumerable<LedValue> values)
 		{
 			var leds = values.ToArray();
-			if (leds.Any(x => x.NeedsEnriching()))
-			{
-				var pr = new PresetRepository();
-				pr.EnrichLedValues(ref leds);
-			}
 			using (var context = new PiHomeContext())
 			{
 				foreach (var ledValue in leds)
@@ -46,6 +41,24 @@ namespace DataPersistance.Modules
 					context.Led.Add(new Led
 					{
 						ModuleId = ledValue.ModuleId,
+						Index = ledValue.Index,
+						Position = new NpgsqlPoint(ledValue.X, ledValue.Y)
+					});
+				}
+
+				context.SaveChanges();
+			}
+		}
+
+		public void AddLedValues(int moduleId, IEnumerable<LedDto> leds)
+		{
+			using (var context = new PiHomeContext())
+			{
+				foreach (var ledValue in leds)
+				{
+					context.Led.Add(new Led
+					{
+						ModuleId = moduleId,
 						Index = ledValue.Index,
 						Position = new NpgsqlPoint(ledValue.X, ledValue.Y)
 					});
@@ -89,5 +102,12 @@ namespace DataPersistance.Modules
 				context.SaveChanges();
 			}
 		}
+	}
+
+	public class LedDto
+	{
+		public int Index { get; set; }
+		public double X { get; set; }
+		public double Y { get; set; }
 	}
 }

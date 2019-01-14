@@ -29,6 +29,11 @@ namespace Coordinator.Modules
 			return repo.GetPreset(name);
 		}
 
+		public PresetDto GetPresetDto(string name)
+		{
+			return repo.GetPresetDto(name);
+		}
+
 		public List<string> GetAllPresets()
 		{
 			return repo.GetAllPresets();
@@ -36,11 +41,16 @@ namespace Coordinator.Modules
 
 		public void SavePreset(string name, IEnumerable<LedValue> leds)
 		{
-			repo.SavePreset(name, leds);
+			repo.SavePreset(name, leds, DateTime.UtcNow);
 			using (var mn = new MasterNetworker(mc.GetCurrentModule().Module.Name))
 			{
 				mn.PresetChanges(name);
 			}
+		}
+
+		public void SavePreset(PresetDto preset)
+		{
+			repo.SavePreset(preset.Name, repo.ToLedValues(preset.LedValues), preset.LastChangeDate);
 		}
 
 		public void DeletePreset(string name)

@@ -26,8 +26,7 @@ namespace PiUi.Controllers
 			{
 				Presets = ledController.GetAllPresets()
 			};
-
-            return View(presetModel);
+			return View(presetModel);
         }
 
         // GET: Preset/Create
@@ -58,14 +57,12 @@ namespace PiUi.Controllers
 		[IgnoreAntiforgeryToken]
 		public ActionResult GetAllPresets()
 		{
-			var presets = ledController.GetAllPresets();
-			return Json(presets);
+			return Json(ledController.GetAllPresets());
 		}
 
 	    public ActionResult Get(string name)
 	    {
-		    var data = ledController.GetPreset(name);
-		    return Json(data.Values.SelectMany(x => x).ToArray());
+		    return Json(ledController.GetPresetDto(name));
 	    }
 
 		// POST: Preset/Edit/5
@@ -76,8 +73,7 @@ namespace PiUi.Controllers
             try
             {
                 ledController.SavePreset(collection.Name, collection.LedValues);
-
-                return RedirectToAction(nameof(Index));
+				return RedirectToAction(nameof(Index));
             }
             catch
             {
@@ -91,8 +87,7 @@ namespace PiUi.Controllers
 	    public ActionResult Preview([FromBody] PresetViewModel collection)
 	    {
 		    ledController.Activate(collection.LedValues);
-
-		    return RedirectToAction(nameof(Edit), collection.Name);
+			return RedirectToAction(nameof(Edit), collection.Name);
 	    }
 
         // POST: Preset/Delete/5
@@ -101,8 +96,7 @@ namespace PiUi.Controllers
         public ActionResult Delete(string name)
         {
 	        ledController.DeletePreset(name);
-
-            return RedirectToAction(nameof(Index));
+			return RedirectToAction(nameof(Index));
         }
     }
 }

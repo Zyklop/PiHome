@@ -61,17 +61,6 @@ namespace PiUi.Controllers
 		    return View(vm);
 	    }
 
-		// GET: Module/Create
-		public ActionResult Create()
-        {
-			var vm = new EditModuleViewModel()
-			{
-				CurrentFeatures = new List<Feature>(),
-				PossibleFeatures = mc.GetAllPossibleFeatures()
-			};
-            return View("Edit", vm);
-        }
-
         // GET: Module/Edit/5
         public ActionResult Edit(int id)
         {
@@ -82,9 +71,8 @@ namespace PiUi.Controllers
 	    private EditModuleViewModel GetModuleViewModel(int id)
 	    {
 		    var module = mc.GetModule(id);
-		    var vm = new EditModuleViewModel()
+		    var vm = new EditModuleViewModel
 		    {
-			    Ip = module.Module.Ip.ToString(),
 			    ModuleId = module.Module.Id,
 			    CurrentFeatures = module.Features,
 			    ModuleName = module.Module.Name,
@@ -97,16 +85,9 @@ namespace PiUi.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(EditModuleViewModel model)
         {
-            try
-            {
-	            if (model.ModuleId == 0)
-	            {
-		            mc.AddModule(model.ModuleName, model.Ip);
-	            }
-	            else
-	            {
-		            throw new NotImplementedException();
-	            }
+	        try
+	        {
+		        throw new NotImplementedException();
 
                 return RedirectToAction(nameof(Index));
             }

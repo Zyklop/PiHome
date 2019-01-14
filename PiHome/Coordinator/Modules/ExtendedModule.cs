@@ -150,6 +150,32 @@ namespace Coordinator.Modules
 		{
 			mf.UpdateIp(Module.Id, moduleIp);
 		}
+
+		public PresetDto DownloadPreset(string presetName)
+		{
+			var comm = new DataCommunicator(Module.Ip);
+			return comm.GetPreset(presetName);
+		}
+
+		public string[] GetPresetNames()
+		{
+			var comm = new DataCommunicator(Module.Ip);
+			return comm.GetAllPresets();
+		}
+		public PresetDto[] GetAllPresets()
+		{
+			var comm = new DataCommunicator(Module.Ip);
+			return comm.GetAllPresets().Select(x => comm.GetPreset(x)).ToArray();
+		}
+
+		public void UpdateFromRemoteAsync()
+		{
+			var lc = new LedController();
+			foreach (var preset in GetAllPresets())
+			{
+				lc.SavePreset(preset);
+			}
+		}
 	}
 
 	public class LogValues

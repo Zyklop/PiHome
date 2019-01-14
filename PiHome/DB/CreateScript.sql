@@ -196,4 +196,6 @@ INSERT INTO public."Feature"(
 INSERT INTO public."Feature"(
 	"Id", "Name", "Unit", "LogFactor")
 	VALUES (4, 'Lunimosity', '', 1.0);
-
+	
+INSERT INTO public."Module" ("Name", "Ip", "FeatureIds")
+	VALUES ('', '127.0.0.1', '{}');
