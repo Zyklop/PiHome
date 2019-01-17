@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using Communication.ApiCommunication;
 using DataPersistance.Models;
 using DataPersistance.Modules;
 
@@ -49,14 +50,27 @@ namespace Coordinator.Modules
 			return Modules.FirstOrDefault(x => x.IsLocal);
 		}
 
-		public void AddModule(string name, string ip = "127.0.0.1")
+		public ExtendedModule UpsertModule(IPAddress ip)
 		{
-			mf.AddModule(new Module
+			var comm = new DataCommunicator(ip);
+			var dto = comm.GetConfig();
+			var mod = mf.UpsertModule(dto, ip);
+			var old = Modules.SingleOrDefault(x => x.Module.Id == mod.Id);
+			if (old != null)
 			{
-				FeatureIds = new int[0],
-				Ip = IPAddress.Parse(ip),
-				Name = name
-			});
+				moduleCache.Remove(old);
+			}
+			var features = mf.GetFeatures();
+			var newMod = new ExtendedModule(mod, features.Where(y => mod.FeatureIds.Contains(y.Id)),
+				mod.Ip.Equals(IPAddress.Loopback));
+			moduleCache.Add(newMod);
+			return newMod;
+		}
+
+		public void UpdateIp(string name, IPAddress ip)
+		{
+			var mod = GetModule(name);
+			mf.UpdateIp(mod.Module.Id, ip);
 		}
 	}
 }

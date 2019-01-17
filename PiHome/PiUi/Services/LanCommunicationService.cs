@@ -32,7 +32,7 @@ namespace PiUi.Services
 			var module = mc.GetModule(e.ModuleName);
 			if (module == null)
 			{
-				module = UpsertModule(e.ModuleName, e.ModuleIp);
+				module = UpsertModule(e.ModuleIp);
 			}
 
 			if (!module.Module.Ip.Equals(e.ModuleIp))
@@ -42,9 +42,10 @@ namespace PiUi.Services
 			switch (e.Type)
 			{
 				case ChangeType.ModuleAddress:
+					mc.UpdateIp(e.ModuleName, e.ModuleIp);
 					break;
 				case ChangeType.ModuleSettings:
-					module.UpdateFromRemoteAsync();
+					module.UpdatePresetsFromRemoteAsync();
 					break;
 				case ChangeType.PresetUpserted:
 					var preset = module.DownloadPreset(e.PresetName);
@@ -58,9 +59,9 @@ namespace PiUi.Services
 			}
 		}
 
-		private ExtendedModule UpsertModule(string eModuleName, IPAddress eModuleIp)
+		private ExtendedModule UpsertModule(IPAddress moduleIp)
 		{
-			throw new NotImplementedException();
+			return mc.UpsertModule(moduleIp);
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)

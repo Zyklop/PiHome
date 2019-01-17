@@ -134,6 +134,10 @@ namespace Coordinator.Modules
 				});
 			}
 			mf.AddLedValues(ledValues);
+			using (var mn = new MasterNetworker(Module.Name))
+			{
+				mn.ModuleChanges();
+			}
 		}
 
 		public void AddFeature(int featureId, string interval)
@@ -157,24 +161,29 @@ namespace Coordinator.Modules
 			return comm.GetPreset(presetName);
 		}
 
-		public string[] GetPresetNames()
-		{
-			var comm = new DataCommunicator(Module.Ip);
-			return comm.GetAllPresets();
-		}
 		public PresetDto[] GetAllPresets()
 		{
 			var comm = new DataCommunicator(Module.Ip);
 			return comm.GetAllPresets().Select(x => comm.GetPreset(x)).ToArray();
 		}
 
-		public void UpdateFromRemoteAsync()
+		public void UpdatePresetsFromRemoteAsync()
 		{
 			var lc = new LedController();
 			foreach (var preset in GetAllPresets())
 			{
 				lc.SavePreset(preset);
 			}
+		}
+
+		public void SetName(string modelModuleName)
+		{
+			mf.SetName(Module.Id, modelModuleName);
+		}
+
+		public ModuleDto GetSettings()
+		{
+			return mf.GetModule(Module.Id);
 		}
 	}
 

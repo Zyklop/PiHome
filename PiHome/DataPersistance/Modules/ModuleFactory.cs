@@ -45,35 +45,44 @@ namespace DataPersistance.Modules
 						Position = new NpgsqlPoint(ledValue.X, ledValue.Y)
 					});
 				}
-
 				context.SaveChanges();
 			}
 		}
 
-		public void AddLedValues(int moduleId, IEnumerable<LedDto> leds)
+		public Module UpsertModule(ModuleDto mod, IPAddress ip)
 		{
 			using (var context = new PiHomeContext())
 			{
-				foreach (var ledValue in leds)
+				var module = context.Module.SingleOrDefault(x => x.Name == mod.Name);
+				var existingLeds = new Dictionary<int, Led>();
+				if (module == null)
 				{
-					context.Led.Add(new Led
+					module = new Module
 					{
-						ModuleId = moduleId,
-						Index = ledValue.Index,
-						Position = new NpgsqlPoint(ledValue.X, ledValue.Y)
-					});
+						Name = mod.Name,
+						FeatureIds = mod.FeatureIds,
+						Ip = ip
+					};
+					context.Add(module);
 				}
-
+				else
+				{
+					module.FeatureIds = mod.FeatureIds;
+					module.Ip = ip;
+					existingLeds = context.Led.Where(x => x.ModuleId == module.Id).ToDictionary(x => x.Index, x => x);
+				}
+				context.Led.RemoveRange(existingLeds.Where(x => mod.Leds.All(y => y.Index != x.Key)).Select(x => x.Value));
+				foreach (var ledValue in mod.Leds)
+				{
+					if (!existingLeds.TryGetValue(ledValue.Index, out var led))
+					{
+						led = new Led{Index = ledValue.Index, Module = module};
+						context.Led.Add(led);
+					}
+					led.Position = new NpgsqlPoint(ledValue.X, ledValue.Y);
+				}
 				context.SaveChanges();
-			}
-		}
-
-		public void AddModule(Module module)
-		{
-			using (var context = new PiHomeContext())
-			{
-				context.Add(module);
-				context.SaveChanges();
+				return module;
 			}
 		}
 
@@ -102,6 +111,30 @@ namespace DataPersistance.Modules
 				context.SaveChanges();
 			}
 		}
+
+		public void SetName(int id, string moduleName)
+		{
+			using (var context = new PiHomeContext())
+			{
+				var module = context.Module.Single(x => x.Id == id);
+				module.Name = moduleName;
+				context.SaveChanges();
+			}
+		}
+
+		public ModuleDto GetModule(int id)
+		{
+			using (var context = new PiHomeContext())
+			{
+				var module = context.Module.Include(x => x.LogConfiguration).AsNoTracking().Single(x => x.Id == id);
+				return new ModuleDto
+				{
+					Name = module.Name, FeatureIds = module.FeatureIds,
+					Leds = module.Led.Select(x => new LedDto {Index = x.Index, X = x.Position.X, Y = x.Position.Y})
+						.ToArray()
+				};
+			}
+		}
 	}
 
 	public class LedDto
@@ -109,5 +142,12 @@ namespace DataPersistance.Modules
 		public int Index { get; set; }
 		public double X { get; set; }
 		public double Y { get; set; }
+	}
+
+	public class ModuleDto
+	{
+		public string Name { get; set; }
+		public int[] FeatureIds { get; set; }
+		public LedDto[] Leds { get; set; }
 	}
 }

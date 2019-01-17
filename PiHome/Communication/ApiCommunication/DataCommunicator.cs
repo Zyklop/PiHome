@@ -21,5 +21,10 @@ namespace Communication.ApiCommunication
 		{
 			return GetRequest<string[]>("/Preset/GetAllPresets");
 		}
+
+		public ModuleDto GetConfig()
+		{
+			return GetRequest<ModuleDto>("/Module/Settings");
+		}
 	}
 }

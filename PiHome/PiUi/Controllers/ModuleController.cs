@@ -87,7 +87,8 @@ namespace PiUi.Controllers
         {
 	        try
 	        {
-		        throw new NotImplementedException();
+		        var mod = mc.GetCurrentModule();
+		        mod.SetName(model.ModuleName);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -95,13 +96,6 @@ namespace PiUi.Controllers
             {
                 return View("Edit", model);
             }
-		}
-		
-	    [HttpGet]
-	    public ActionResult Delete(int moduleId)
-	    {
-			throw new NotImplementedException();
-		    return RedirectToAction(nameof(Index));
 		}
 		
 	    [HttpPost]
@@ -140,6 +134,14 @@ namespace PiUi.Controllers
 		    {
 			    return View("Edit", model);
 		    }
+	    }
+
+	    [IgnoreAntiforgeryToken]
+	    public ActionResult Settings()
+	    {
+		    var mod = mc.GetCurrentModule();
+		    var settings = mod.GetSettings();
+		    return Json(settings);
 	    }
 	}
 }
