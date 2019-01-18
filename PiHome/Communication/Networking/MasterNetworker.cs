@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Communication.Networking
 {
@@ -10,7 +13,7 @@ namespace Communication.Networking
 		private static MulticastConnector _multi;
 		private static int _broadcastsAhead = 0;
 		private string _moduleName;
-		private readonly Dictionary<string, IPAddress> _knownModules = new Dictionary<string, IPAddress>();
+		private readonly ConcurrentDictionary<string, IPAddress> _knownModules = new ConcurrentDictionary<string, IPAddress>();
 
 		public MasterNetworker(string moduleName)
 		{
@@ -35,6 +38,13 @@ namespace Communication.Networking
 
 		private void MessageRecived(object sender, TransmissionEventArgs e)
 		{
+
+			var localIps = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces().SelectMany(x => x.GetIPProperties().UnicastAddresses).Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
+			var isLocal = localIps.Any(x => x.Address.Equals(e.Ip));
+			if (isLocal)
+			{
+				return;
+			}
 			if (_broad != null && sender is MulticastConnector)
 			{
 				_broad.OnDataRecived -= MessageRecived;
@@ -56,31 +66,34 @@ namespace Communication.Networking
 					_broadcastsAhead++;
 				}
 			}
+			
+			var moduleName = e.Data.ModuleName.Value;
+			var eventType = e.Data.Type.Value;
 
-			if (!_knownModules.ContainsKey(e.Data.ModuleName))
+			if (!_knownModules.ContainsKey(moduleName))
 			{
-				_knownModules.Add(e.Data.ModuleName, e.Ip);
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs{ModuleIp = e.Ip, ModuleName = e.Data.ModuleName, Type = ChangeType.ModuleAddress});
+				_knownModules.TryAdd(moduleName, e.Ip);
+				OnChange?.Invoke(this, new ChangeDetectedEventArgs{ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress});
 			}
-			else if (_knownModules[e.Data.moduleName] != e.Ip)
+			else if (_knownModules[moduleName] != e.Ip)
 			{
-				_knownModules[e.Data.ModuleName] = e.Ip;
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = e.Data.ModuleName, Type = ChangeType.ModuleAddress });
+				_knownModules[moduleName] = e.Ip;
+				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress });
 			}
 
-			if (e.Data.Type == "PresetChange")
+			if (eventType == "PresetChange")
 			{
 				OnChange?.Invoke(this, new ChangeDetectedEventArgs
 				{
 					ModuleIp = e.Ip,
-					ModuleName = e.Data.ModuleName,
-					Type = e.Data.Deleted ? ChangeType.PresetDeleted : ChangeType.PresetUpserted,
-					PresetName = e.Data.PresetName
+					ModuleName = moduleName,
+					Type = e.Data.Deleted.Value ? ChangeType.PresetDeleted : ChangeType.PresetUpserted,
+					PresetName = e.Data.PresetName.Value
 				});
 			}
-			else if (e.Data.Type == "ModuleChange")
+			else if (eventType == "ModuleChange")
 			{
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = e.Data.ModuleName, Type = ChangeType.ModuleSettings });
+				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleSettings });
 			}
 		}
 

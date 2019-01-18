@@ -25,6 +25,7 @@ namespace PiUi
             services.AddMvc();
 	        services.AddHostedService<LoggingService>();
 	        services.AddHostedService<NetworkSupervisor>();
+	        services.AddHostedService<LanCommunicationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

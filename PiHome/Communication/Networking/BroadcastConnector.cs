@@ -12,6 +12,7 @@ namespace Communication.Networking
 		private readonly int _port = 9876;
 		private UdpClient _client;
 		private Thread _thread;
+		private CancellationTokenSource canceller;
 
 		public BroadcastConnector(int port = 0)
 		{
@@ -34,14 +35,16 @@ namespace Communication.Networking
 		{
 			if (_thread != null && _thread.IsAlive)
 			{
-				_thread.Abort();
+				canceller.Cancel();
 			}
+			canceller = new CancellationTokenSource();
 			_client.Client.Bind(new IPEndPoint(IPAddress.Any, _port));
 			_thread = new Thread(() =>
 			{
 				var from = new IPEndPoint(0, 0);
 				byte[] buffer;
-				while (_client.Client.IsBound)
+				var token = canceller.Token;
+				while (!token.IsCancellationRequested)
 				{
 					try
 					{
@@ -79,7 +82,7 @@ namespace Communication.Networking
 			}
 			if (_thread != null && _thread.IsAlive)
 			{
-				_thread.Abort();
+				canceller.Cancel();
 			}
 		}
 

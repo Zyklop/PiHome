@@ -19,11 +19,10 @@ namespace PiUi.Services
 
 		public LanCommunicationService()
 		{
-			var mc = new ModuleController();
+			mc = new ModuleController();
 			mod = mc.GetCurrentModule();
 			canceller = new CancellationTokenSource();
 			networker = new MasterNetworker(mod?.Module?.Name);
-			mc = new ModuleController();
 			lc = new LedController();
 		}
 

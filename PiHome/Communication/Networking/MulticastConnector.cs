@@ -15,6 +15,7 @@ namespace Communication.Networking
 		private readonly int _listeningPort = 7489;
 		private readonly Socket _listeningSocket;
 		private Thread _thread;
+		private CancellationTokenSource canceller;
 
 		public MulticastConnector(int listeningPort = 0, string ip = "")
 		{
@@ -67,15 +68,17 @@ namespace Communication.Networking
 		{
 			if (_thread != null && _thread.IsAlive)
 			{
-				_thread.Abort();
+				canceller.Cancel();
 			}
+			canceller = new CancellationTokenSource();
 			_thread = new Thread(() =>
 			{
 				var ipep = new IPEndPoint(IPAddress.Any, _listeningPort);
 				_listeningSocket.Bind(ipep);
 				_listeningSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(_multicastAddress, IPAddress.Any));
 
-				while (_listeningSocket.IsBound)
+				var token = canceller.Token;
+				while (!token.IsCancellationRequested)
 				{
 					var b = new byte[BufferLength];
 					var remoteEp = (EndPoint)ipep;
@@ -114,7 +117,7 @@ namespace Communication.Networking
 			}
 			if (_thread != null && _thread.IsAlive)
 			{
-				_thread.Abort();
+				canceller.Cancel();
 			}
 		}
 		
