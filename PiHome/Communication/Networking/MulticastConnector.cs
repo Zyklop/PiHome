@@ -107,12 +107,16 @@ namespace Communication.Networking
 			{
 				try
 				{
-					_listeningSocket.Shutdown(SocketShutdown.Send);
+					_listeningSocket.Shutdown(SocketShutdown.Receive);
 					_listeningSocket.Close();
 				}
 				catch (ObjectDisposedException e)
 				{
 					//already happend
+				}
+				catch (SocketException e)
+				{
+					//fuck sockets
 				}
 			}
 			if (_thread != null && _thread.IsAlive)

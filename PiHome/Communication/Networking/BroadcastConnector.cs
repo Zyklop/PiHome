@@ -72,12 +72,15 @@ namespace Communication.Networking
 			{
 				try
 				{
-					_client.Client.Shutdown(SocketShutdown.Send);
-					_client.Client.Close();
+					_client.Client.Shutdown(SocketShutdown.Receive);
 				}
 				catch (ObjectDisposedException e)
 				{
 					//already happend
+				}
+				catch (SocketException e)
+				{
+					//fuck sockets
 				}
 			}
 			if (_thread != null && _thread.IsAlive)
@@ -90,6 +93,19 @@ namespace Communication.Networking
 		public void Dispose()
 		{
 			StopListening();
+			try
+			{
+				_client.Client.Shutdown(SocketShutdown.Both);
+				_client.Client.Close();
+			}
+			catch (ObjectDisposedException e)
+			{
+				//already happend
+			}
+			catch (SocketException e)
+			{
+				//fuck sockets
+			}
 		}
 	}
 }

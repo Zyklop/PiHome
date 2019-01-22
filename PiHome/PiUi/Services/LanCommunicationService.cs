@@ -34,7 +34,7 @@ namespace PiUi.Services
 				module = UpsertModule(e.ModuleIp);
 			}
 
-			if (!module.Module.Ip.Equals(e.ModuleIp))
+			if (!module.IsLocal && !module.Module.Ip.Equals(e.ModuleIp))
 			{
 				module.UpdateIp(e.ModuleIp);
 			}

@@ -22,6 +22,7 @@ namespace PiUi
 			.UseKestrel()
 	            .UseUrls("http://0.0.0.0:5000")
             .UseStartup<Startup>()
+            .UseWebRoot(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
             .Build();
     }
 }

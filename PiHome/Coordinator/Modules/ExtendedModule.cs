@@ -152,6 +152,10 @@ namespace Coordinator.Modules
 
 		public void UpdateIp(IPAddress moduleIp)
 		{
+			if (IsLocal)
+			{
+				throw new ArgumentException("Ip change of local module is not allowed");
+			}
 			mf.UpdateIp(Module.Id, moduleIp);
 		}
 

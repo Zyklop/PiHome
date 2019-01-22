@@ -13,18 +13,18 @@ namespace Communication.ApiCommunication
 
 		public PresetDto GetPreset(string name)
 		{
-			var res = GetRequest<PresetDto>("/Preset/Get", name);
+			var res = GetRequest<PresetDto>("Preset/Get", name);
 			return res;
 		}
 
 		public string[] GetAllPresets()
 		{
-			return GetRequest<string[]>("/Preset/GetAllPresets");
+			return GetRequest<string[]>("Preset/GetAllPresets");
 		}
 
 		public ModuleDto GetConfig()
 		{
-			return GetRequest<ModuleDto>("/Module/Settings");
+			return GetRequest<ModuleDto>("Module/Settings");
 		}
 	}
 }
