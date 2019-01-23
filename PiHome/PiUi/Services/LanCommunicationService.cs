@@ -63,7 +63,13 @@ namespace PiUi.Services
 
 		private ExtendedModule UpsertModule(IPAddress moduleIp)
 		{
-			return mc.UpsertModule(moduleIp);
+			var newMod = mc.UpsertModule(moduleIp);
+			var presets = newMod.GetAllPresets();
+			foreach (var preset in presets)
+			{
+				lc.SavePreset(preset);
+			}
+			return newMod;
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)

@@ -126,7 +126,7 @@ namespace DataPersistance.Modules
 		{
 			using (var context = new PiHomeContext())
 			{
-				var module = context.Module.Include(x => x.LogConfiguration).AsNoTracking().Single(x => x.Id == id);
+				var module = context.Module.Include(x => x.Led).AsNoTracking().Single(x => x.Id == id);
 				return new ModuleDto
 				{
 					Name = module.Name, FeatureIds = module.FeatureIds,

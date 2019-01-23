@@ -13,7 +13,7 @@ namespace Communication.ApiCommunication
 
 		public PresetDto GetPreset(string name)
 		{
-			var res = GetRequest<PresetDto>("Preset/Get", name);
+			var res = GetRequest<PresetDto>($"Preset/Get?name={name}");
 			return res;
 		}
 

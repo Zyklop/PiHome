@@ -47,7 +47,7 @@ namespace DataPersistance.Modules
 		{
 			using (var context = new PiHomeContext())
 			{
-				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).Select(x => new PresetDto
+				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).Include(x => x.LedPresetValues).ThenInclude(x => x.Led).Select(x => new PresetDto
 				{
 					Name = x.Name, LastChangeDate = x.ChangeDate,
 					LedValues = x.LedPresetValues.Select(y => new LedPresetDto

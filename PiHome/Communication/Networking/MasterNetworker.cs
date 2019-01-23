@@ -76,7 +76,7 @@ namespace Communication.Networking
 				_knownModules.TryAdd(moduleName, e.Ip);
 				OnChange?.Invoke(this, new ChangeDetectedEventArgs{ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress});
 			}
-			else if (_knownModules[moduleName] != e.Ip)
+			else if (!_knownModules[moduleName].Equals(e.Ip))
 			{
 				_knownModules[moduleName] = e.Ip;
 				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress });
