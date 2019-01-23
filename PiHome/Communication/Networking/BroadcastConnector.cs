@@ -3,7 +3,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Communication.Networking
 {
@@ -13,9 +15,11 @@ namespace Communication.Networking
 		private UdpClient _client;
 		private Thread _thread;
 		private CancellationTokenSource canceller;
+		private ILogger logger;
 
-		public BroadcastConnector(int port = 0)
+		public BroadcastConnector(ILogger logger, int port = 0)
 		{
+			this.logger = logger;
 			if (port != 0)
 			{
 				_port = port;
@@ -48,7 +52,26 @@ namespace Communication.Networking
 				{
 					try
 					{
-						buffer = _client.Receive(ref from);
+						var response = _client.ReceiveAsync();
+						if (response.Wait(3000, token) && !response.IsFaulted && !response.IsCanceled &&
+						    response.IsCompleted)
+						{
+							buffer = response.Result.Buffer;
+							from = response.Result.RemoteEndPoint;
+							var data = JsonConvert.DeserializeObject<dynamic>(Encoding.UTF8.GetString(buffer));
+							OnDataRecived?.Invoke(this, new TransmissionEventArgs(data, from.Address));
+						}
+						else
+						{
+							if (response.IsFaulted)
+							{
+								logger.Error(response.Exception, "Broadcast failed");
+							}
+							else
+							{
+								logger.Information("Broadcast timed out");
+							}
+						}
 					}
 					catch (SocketException e)
 					{
@@ -56,10 +79,14 @@ namespace Communication.Networking
 						{
 							throw e;
 						}
+
+						logger.Fatal(e, "Broadcast failed");
 						break;
 					}
-					var data = JsonConvert.DeserializeObject<dynamic>(Encoding.UTF8.GetString(buffer));
-					OnDataRecived?.Invoke(this, new TransmissionEventArgs(data, from.Address));
+					catch (OperationCanceledException e)
+					{
+						logger.Information("Broadcaster terminated");
+					}
 				}
 			});
 			_thread.Start();

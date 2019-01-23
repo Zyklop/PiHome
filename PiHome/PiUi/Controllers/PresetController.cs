@@ -7,16 +7,19 @@ using DataPersistance.Modules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PiUi.Models;
+using Serilog;
 
 namespace PiUi.Controllers
 {
     public class PresetController : Controller
     {
 	    private LedController ledController;
+	    private ILogger logger;
 
-	    public PresetController()
+	    public PresetController(ILogger logger)
 	    {
-			ledController = new LedController();
+		    this.logger = logger;
+		    ledController = new LedController(logger);
 	    }
 
 		// GET: Preset

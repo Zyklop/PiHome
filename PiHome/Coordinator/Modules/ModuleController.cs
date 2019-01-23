@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using Communication.ApiCommunication;
 using DataPersistance.Models;
 using DataPersistance.Modules;
+using Serilog;
 
 namespace Coordinator.Modules
 {
@@ -12,6 +13,12 @@ namespace Coordinator.Modules
 	{
 		private List<ExtendedModule> moduleCache;
 		private ModuleFactory mf = new ModuleFactory();
+		private ILogger logger;
+
+		public ModuleController(ILogger logger)
+		{
+			this.logger = logger;
+		}
 
 		public List<ExtendedModule> Modules
 		{
@@ -23,7 +30,7 @@ namespace Coordinator.Modules
 					moduleCache = mf.GetAllModules().Select(x =>
 					{
 						var currentFeatures = features.Where(y => x.FeatureIds.Contains(y.Id));
-						return new ExtendedModule(x, currentFeatures, x.Ip.Equals(IPAddress.Loopback));
+						return new ExtendedModule(x, currentFeatures, x.Ip.Equals(IPAddress.Loopback), logger);
 					}).ToList();
 				}
 				return moduleCache;
@@ -62,7 +69,7 @@ namespace Coordinator.Modules
 			}
 			var features = mf.GetFeatures();
 			var newMod = new ExtendedModule(mod, features.Where(y => mod.FeatureIds.Contains(y.Id)),
-				mod.Ip.Equals(IPAddress.Loopback));
+				mod.Ip.Equals(IPAddress.Loopback), logger);
 			moduleCache.Add(newMod);
 			return newMod;
 		}

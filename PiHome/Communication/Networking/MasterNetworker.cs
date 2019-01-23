@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using Serilog;
 
 namespace Communication.Networking
 {
@@ -15,12 +16,12 @@ namespace Communication.Networking
 		private string _moduleName;
 		private readonly ConcurrentDictionary<string, IPAddress> _knownModules = new ConcurrentDictionary<string, IPAddress>();
 
-		public MasterNetworker(string moduleName)
+		public MasterNetworker(string moduleName, ILogger logger)
 		{
 			_moduleName = moduleName;
 			if (_broad == null && _multi == null)
 			{
-				_broad = new BroadcastConnector();
+				_broad = new BroadcastConnector(logger);
 				_multi = new MulticastConnector();
 				_broad.Listen();
 				_multi.Listen();
@@ -163,10 +164,16 @@ namespace Communication.Networking
 			if (_multi != null)
 			{
 				_multi.OnDataRecived -= MessageRecived;
+				_multi.StopListening();
+				_multi.Dispose();
+				_multi = null;
 			}
 			if (_broad != null)
 			{
 				_broad.OnDataRecived -= MessageRecived;
+				_broad.StopListening();
+				_broad.Dispose();
+				_broad = null;
 			}
 		}
 	}

@@ -7,16 +7,19 @@ using DataPersistance.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PiUi.Models;
+using Serilog;
 
 namespace PiUi.Controllers
 {
     public class ModuleController : Controller
     {
 	    private Coordinator.Modules.ModuleController mc;
+	    private ILogger logger;
 
-	    public ModuleController()
+	    public ModuleController(ILogger logger)
 	    {
-		    mc = new Coordinator.Modules.ModuleController();
+		    this.logger = logger;
+		    mc = new Coordinator.Modules.ModuleController(logger);
 	    }
 
 	    // GET: Module

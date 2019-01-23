@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Communication.Networking;
 using Coordinator.Modules;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace PiUi.Services
 {
@@ -16,14 +17,16 @@ namespace PiUi.Services
 		private MasterNetworker networker;
 		private ModuleController mc;
 		private LedController lc;
+		private ILogger logger;
 
-		public LanCommunicationService()
+		public LanCommunicationService(ILogger logger)
 		{
-			mc = new ModuleController();
+			this.logger = logger;
+			mc = new ModuleController(logger);
 			mod = mc.GetCurrentModule();
 			canceller = new CancellationTokenSource();
-			networker = new MasterNetworker(mod?.Module?.Name);
-			lc = new LedController();
+			networker = new MasterNetworker(mod?.Module?.Name, logger);
+			lc = new LedController(logger);
 		}
 
 		private void ChangeDetected(object sender, ChangeDetectedEventArgs e)

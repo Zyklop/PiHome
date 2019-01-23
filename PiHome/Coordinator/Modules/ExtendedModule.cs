@@ -7,6 +7,7 @@ using DataPersistance.Models;
 using Communication.ApiCommunication;
 using Communication.Networking;
 using DataPersistance.Modules;
+using Serilog;
 
 namespace Coordinator.Modules
 {
@@ -16,8 +17,9 @@ namespace Coordinator.Modules
 		private SensorCommunicator sensor;
 		private LogRepository logRepo;
 		private ModuleFactory mf;
+		private ILogger logger;
 
-		public ExtendedModule(Module module, IEnumerable<Feature> currentFeatures, bool isLocal)
+		public ExtendedModule(Module module, IEnumerable<Feature> currentFeatures, bool isLocal, ILogger logger)
 		{
 			Module = module;
 			leds = new LedCommunicator(module.Ip);
@@ -26,6 +28,7 @@ namespace Coordinator.Modules
 			mf = new ModuleFactory();
 			Features = currentFeatures.ToList();
 			IsLocal = isLocal;
+			this.logger = logger;
 		}
 
 		public Module Module { get; }
@@ -134,7 +137,7 @@ namespace Coordinator.Modules
 				});
 			}
 			mf.AddLedValues(ledValues);
-			using (var mn = new MasterNetworker(Module.Name))
+			using (var mn = new MasterNetworker(Module.Name, logger))
 			{
 				mn.ModuleChanges();
 			}
@@ -144,7 +147,7 @@ namespace Coordinator.Modules
 		{
 			var ts = TimeSpan.Parse(interval);
 			mf.AddFeature(Module.Id, featureId, ts);
-			using (var mn = new MasterNetworker(Module.Name))
+			using (var mn = new MasterNetworker(Module.Name, logger))
 			{
 				mn.ModuleChanges();
 			}
@@ -173,7 +176,7 @@ namespace Coordinator.Modules
 
 		public void UpdatePresetsFromRemoteAsync()
 		{
-			var lc = new LedController();
+			var lc = new LedController(logger);
 			foreach (var preset in GetAllPresets())
 			{
 				lc.SavePreset(preset);
