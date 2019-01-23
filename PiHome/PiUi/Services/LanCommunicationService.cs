@@ -31,33 +31,41 @@ namespace PiUi.Services
 
 		private void ChangeDetected(object sender, ChangeDetectedEventArgs e)
 		{
-			var module = mc.GetModule(e.ModuleName);
-			if (module == null)
+			try
 			{
-				module = UpsertModule(e.ModuleIp);
-			}
+				var module = mc.GetModule(e.ModuleName);
+				if (module == null)
+				{
+					module = UpsertModule(e.ModuleIp);
+				}
 
-			if (!module.IsLocal && !module.Module.Ip.Equals(e.ModuleIp))
-			{
-				module.UpdateIp(e.ModuleIp);
+				if (!module.IsLocal && !module.Module.Ip.Equals(e.ModuleIp))
+				{
+					module.UpdateIp(e.ModuleIp);
+				}
+				switch (e.Type)
+				{
+					case ChangeType.ModuleAddress:
+						mc.UpdateIp(e.ModuleName, e.ModuleIp);
+						break;
+					case ChangeType.ModuleSettings:
+						module.UpdatePresetsFromRemoteAsync();
+						break;
+					case ChangeType.PresetUpserted:
+						var preset = module.DownloadPreset(e.PresetName);
+						lc.SavePreset(preset);
+						break;
+					case ChangeType.PresetDeleted:
+						lc.DeletePreset(e.PresetName);
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
 			}
-			switch (e.Type)
+			catch (Exception exception)
 			{
-				case ChangeType.ModuleAddress:
-					mc.UpdateIp(e.ModuleName, e.ModuleIp);
-					break;
-				case ChangeType.ModuleSettings:
-					module.UpdatePresetsFromRemoteAsync();
-					break;
-				case ChangeType.PresetUpserted:
-					var preset = module.DownloadPreset(e.PresetName);
-					lc.SavePreset(preset);
-					break;
-				case ChangeType.PresetDeleted:
-					lc.DeletePreset(e.PresetName);
-					break;
-				default:
-					throw new ArgumentOutOfRangeException();
+				logger.Warning(exception, "Change parser crashed");
+				throw;
 			}
 		}
 
@@ -80,6 +88,7 @@ namespace PiUi.Services
 			}
 			networker.OnChange += ChangeDetected;
 			Task.Run(() => Announce(canceller.Token));
+			logger.Information("Communicator started");
 		}
 
 		public async Task Announce(CancellationToken token)
@@ -97,12 +106,14 @@ namespace PiUi.Services
 
 				await Task.Delay(60000);
 			}
+			logger.Information("Announcer stopped");
 		}
 
 		public async Task StopAsync(CancellationToken cancellationToken)
 		{
 			canceller.Cancel();
 			networker.OnChange -= ChangeDetected;
+			logger.Information("Communicator stopped");
 		}
 
 		public void Dispose()
@@ -110,6 +121,7 @@ namespace PiUi.Services
 			canceller.Cancel();
 			networker.OnChange -= ChangeDetected;
 			networker.Dispose();
+			logger.Information("Communicator disposed");
 		}
 	}
 }

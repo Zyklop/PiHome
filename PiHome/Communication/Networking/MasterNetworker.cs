@@ -15,14 +15,16 @@ namespace Communication.Networking
 		private static int _broadcastsAhead = 0;
 		private string _moduleName;
 		private readonly ConcurrentDictionary<string, IPAddress> _knownModules = new ConcurrentDictionary<string, IPAddress>();
+		private ILogger logger;
 
 		public MasterNetworker(string moduleName, ILogger logger)
 		{
+			this.logger = logger;
 			_moduleName = moduleName;
 			if (_broad == null && _multi == null)
 			{
 				_broad = new BroadcastConnector(logger);
-				_multi = new MulticastConnector();
+				_multi = new MulticastConnector(logger);
 				_broad.Listen();
 				_multi.Listen();
 			}
@@ -104,6 +106,7 @@ namespace Communication.Networking
 			{
 				throw new ArgumentException("Modulename is not allowed to be empty");
 			}
+			logger.Debug("Announcing on:" + (_multi==null?"":" multicast") + (_broad==null?"":" broadcast"));
 			_multi?.Send(new ModuleAnnouncment {ModuleName = _moduleName});
 			_broad?.Send(new ModuleAnnouncment {ModuleName = _moduleName});
 		}

@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Communication.Networking
 {
@@ -16,9 +17,11 @@ namespace Communication.Networking
 		private readonly Socket _listeningSocket;
 		private Thread _thread;
 		private CancellationTokenSource canceller;
+		private ILogger logger;
 
-		public MulticastConnector(int listeningPort = 0, string ip = "")
+		public MulticastConnector(ILogger logger, int listeningPort = 0, string ip = "")
 		{
+			this.logger = logger;
 			if (!string.IsNullOrWhiteSpace(ip))
 			{
 				var ips = ip.Split('.');
@@ -123,6 +126,7 @@ namespace Communication.Networking
 			{
 				canceller.Cancel();
 			}
+			logger.Information("Multicast connector terminated");
 		}
 		
 		public event EventHandler<TransmissionEventArgs> OnDataRecived;
@@ -130,6 +134,7 @@ namespace Communication.Networking
 		public void Dispose()
 		{
 			StopListening();
+			logger.Information("Multicast connector disposed");
 		}
 	}
 }
