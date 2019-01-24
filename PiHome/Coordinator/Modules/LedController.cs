@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Communication.ApiCommunication;
+using Communication.Networking;
 using DataPersistance.Models;
 using DataPersistance.Modules;
+using Serilog;
 
 namespace Coordinator.Modules
 {
@@ -11,10 +13,14 @@ namespace Coordinator.Modules
 	{
 		private PresetRepository repo;
 		private ModuleFactory mf = new ModuleFactory();
+		private ModuleController mc;
+		private ILogger logger;
 
-		public LedController()
+		public LedController(ILogger logger)
 		{
+			this.logger = logger;
 			repo = new PresetRepository();
+			mc = new ModuleController(logger);
 		}
 
 		public List<LedValue> GetAllLeds()
@@ -27,6 +33,11 @@ namespace Coordinator.Modules
 			return repo.GetPreset(name);
 		}
 
+		public PresetDto GetPresetDto(string name)
+		{
+			return repo.GetPresetDto(name);
+		}
+
 		public List<string> GetAllPresets()
 		{
 			return repo.GetAllPresets();
@@ -34,12 +45,25 @@ namespace Coordinator.Modules
 
 		public void SavePreset(string name, IEnumerable<LedValue> leds)
 		{
-			repo.SavePreset(name, leds);
+			repo.SavePreset(name, leds, DateTime.UtcNow);
+			using (var mn = new MasterNetworker(mc.GetCurrentModule().Module.Name, logger))
+			{
+				mn.PresetChanges(name);
+			}
+		}
+
+		public void SavePreset(PresetDto preset)
+		{
+			repo.SavePreset(preset.Name, repo.ToLedValues(preset.LedValues), preset.LastChangeDate);
 		}
 
 		public void DeletePreset(string name)
 		{
 			repo.DeletePreset(name);
+			using (var mn = new MasterNetworker(mc.GetCurrentModule().Module.Name, logger))
+			{
+				mn.PresetDeleted(name);
+			}
 		}
 
 		public void Activate(string name)

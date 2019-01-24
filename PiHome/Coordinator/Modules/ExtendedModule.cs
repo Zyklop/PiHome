@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using DataPersistance.Models;
 using Communication.ApiCommunication;
+using Communication.Networking;
 using DataPersistance.Modules;
+using Serilog;
 
 namespace Coordinator.Modules
 {
@@ -14,8 +17,9 @@ namespace Coordinator.Modules
 		private SensorCommunicator sensor;
 		private LogRepository logRepo;
 		private ModuleFactory mf;
+		private ILogger logger;
 
-		public ExtendedModule(Module module, IEnumerable<Feature> currentFeatures, bool isLocal)
+		public ExtendedModule(Module module, IEnumerable<Feature> currentFeatures, bool isLocal, ILogger logger)
 		{
 			Module = module;
 			leds = new LedCommunicator(module.Ip);
@@ -24,6 +28,7 @@ namespace Coordinator.Modules
 			mf = new ModuleFactory();
 			Features = currentFeatures.ToList();
 			IsLocal = isLocal;
+			this.logger = logger;
 		}
 
 		public Module Module { get; }
@@ -126,17 +131,66 @@ namespace Coordinator.Modules
 				{
 					Index = startIndex + i,
 					ModuleId = Module.Id,
+					ModuleName = Module.Name,
 					X = startX + xdiff * i,
 					Y = startY + ydiff * i
 				});
 			}
 			mf.AddLedValues(ledValues);
+			using (var mn = new MasterNetworker(Module.Name, logger))
+			{
+				mn.ModuleChanges();
+			}
 		}
 
 		public void AddFeature(int featureId, string interval)
 		{
 			var ts = TimeSpan.Parse(interval);
 			mf.AddFeature(Module.Id, featureId, ts);
+			using (var mn = new MasterNetworker(Module.Name, logger))
+			{
+				mn.ModuleChanges();
+			}
+		}
+
+		public void UpdateIp(IPAddress moduleIp)
+		{
+			if (IsLocal)
+			{
+				throw new ArgumentException("Ip change of local module is not allowed");
+			}
+			mf.UpdateIp(Module.Id, moduleIp);
+		}
+
+		public PresetDto DownloadPreset(string presetName)
+		{
+			var comm = new DataCommunicator(Module.Ip);
+			return comm.GetPreset(presetName);
+		}
+
+		public PresetDto[] GetAllPresets()
+		{
+			var comm = new DataCommunicator(Module.Ip);
+			return comm.GetAllPresets().Select(x => comm.GetPreset(x)).ToArray();
+		}
+
+		public void UpdatePresetsFromRemoteAsync()
+		{
+			var lc = new LedController(logger);
+			foreach (var preset in GetAllPresets())
+			{
+				lc.SavePreset(preset);
+			}
+		}
+
+		public void SetName(string modelModuleName)
+		{
+			mf.SetName(Module.Id, modelModuleName);
+		}
+
+		public ModuleDto GetSettings()
+		{
+			return mf.GetModule(Module.Id);
 		}
 	}
 

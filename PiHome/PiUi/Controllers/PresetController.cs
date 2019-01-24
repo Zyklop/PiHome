@@ -7,16 +7,19 @@ using DataPersistance.Modules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PiUi.Models;
+using Serilog;
 
 namespace PiUi.Controllers
 {
     public class PresetController : Controller
     {
 	    private LedController ledController;
+	    private ILogger logger;
 
-	    public PresetController()
+	    public PresetController(ILogger logger)
 	    {
-			ledController = new LedController();
+		    this.logger = logger;
+		    ledController = new LedController(logger);
 	    }
 
 		// GET: Preset
@@ -26,8 +29,7 @@ namespace PiUi.Controllers
 			{
 				Presets = ledController.GetAllPresets()
 			};
-
-            return View(presetModel);
+			return View(presetModel);
         }
 
         // GET: Preset/Create
@@ -55,6 +57,17 @@ namespace PiUi.Controllers
 		    return RedirectToAction("Index");
 	    }
 
+		[IgnoreAntiforgeryToken]
+		public ActionResult GetAllPresets()
+		{
+			return Json(ledController.GetAllPresets());
+		}
+
+	    public ActionResult Get(string name)
+	    {
+		    return Json(ledController.GetPresetDto(name));
+	    }
+
 		// POST: Preset/Edit/5
 		[HttpPost]
         [ValidateAntiForgeryToken]
@@ -63,8 +76,7 @@ namespace PiUi.Controllers
             try
             {
                 ledController.SavePreset(collection.Name, collection.LedValues);
-
-                return RedirectToAction(nameof(Index));
+				return RedirectToAction(nameof(Index));
             }
             catch
             {
@@ -78,8 +90,7 @@ namespace PiUi.Controllers
 	    public ActionResult Preview([FromBody] PresetViewModel collection)
 	    {
 		    ledController.Activate(collection.LedValues);
-
-		    return RedirectToAction(nameof(Edit), collection.Name);
+			return RedirectToAction(nameof(Edit), collection.Name);
 	    }
 
         // POST: Preset/Delete/5
@@ -88,8 +99,7 @@ namespace PiUi.Controllers
         public ActionResult Delete(string name)
         {
 	        ledController.DeletePreset(name);
-
-            return RedirectToAction(nameof(Index));
+			return RedirectToAction(nameof(Index));
         }
     }
 }

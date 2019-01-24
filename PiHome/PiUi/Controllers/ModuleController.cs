@@ -7,16 +7,19 @@ using DataPersistance.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PiUi.Models;
+using Serilog;
 
 namespace PiUi.Controllers
 {
     public class ModuleController : Controller
     {
 	    private Coordinator.Modules.ModuleController mc;
+	    private ILogger logger;
 
-	    public ModuleController()
+	    public ModuleController(ILogger logger)
 	    {
-		    mc = new Coordinator.Modules.ModuleController();
+		    this.logger = logger;
+		    mc = new Coordinator.Modules.ModuleController(logger);
 	    }
 
 	    // GET: Module
@@ -61,17 +64,6 @@ namespace PiUi.Controllers
 		    return View(vm);
 	    }
 
-		// GET: Module/Create
-		public ActionResult Create()
-        {
-			var vm = new EditModuleViewModel()
-			{
-				CurrentFeatures = new List<Feature>(),
-				PossibleFeatures = mc.GetAllPossibleFeatures()
-			};
-            return View("Edit", vm);
-        }
-
         // GET: Module/Edit/5
         public ActionResult Edit(int id)
         {
@@ -82,9 +74,8 @@ namespace PiUi.Controllers
 	    private EditModuleViewModel GetModuleViewModel(int id)
 	    {
 		    var module = mc.GetModule(id);
-		    var vm = new EditModuleViewModel()
+		    var vm = new EditModuleViewModel
 		    {
-			    Ip = module.Module.Ip.ToString(),
 			    ModuleId = module.Module.Id,
 			    CurrentFeatures = module.Features,
 			    ModuleName = module.Module.Name,
@@ -97,16 +88,10 @@ namespace PiUi.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(EditModuleViewModel model)
         {
-            try
-            {
-	            if (model.ModuleId == 0)
-	            {
-		            mc.AddModule(model.ModuleName, model.Ip);
-	            }
-	            else
-	            {
-		            throw new NotImplementedException();
-	            }
+	        try
+	        {
+		        var mod = mc.GetCurrentModule();
+		        mod.SetName(model.ModuleName);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -114,13 +99,6 @@ namespace PiUi.Controllers
             {
                 return View("Edit", model);
             }
-		}
-		
-	    [HttpGet]
-	    public ActionResult Delete(int moduleId)
-	    {
-			throw new NotImplementedException();
-		    return RedirectToAction(nameof(Index));
 		}
 		
 	    [HttpPost]
@@ -159,6 +137,14 @@ namespace PiUi.Controllers
 		    {
 			    return View("Edit", model);
 		    }
+	    }
+
+	    [IgnoreAntiforgeryToken]
+	    public ActionResult Settings()
+	    {
+		    var mod = mc.GetCurrentModule();
+		    var settings = mod.GetSettings();
+		    return Json(settings);
 	    }
 	}
 }

@@ -7,7 +7,6 @@ namespace PiUi.Models
 	{
 		public int ModuleId { get; set; }
 		public string ModuleName { get; set; }
-		public string Ip { get; set; }
 		public int FeatureToAdd { get; set; }
 		public string Interval { get; set; }
 		public int FeatureToDelete { get; set; }

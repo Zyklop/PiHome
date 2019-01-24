@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using Communication.ApiCommunication;
 using DataPersistance.Models;
 using DataPersistance.Modules;
+using Serilog;
 
 namespace Coordinator.Modules
 {
@@ -11,6 +13,12 @@ namespace Coordinator.Modules
 	{
 		private List<ExtendedModule> moduleCache;
 		private ModuleFactory mf = new ModuleFactory();
+		private ILogger logger;
+
+		public ModuleController(ILogger logger)
+		{
+			this.logger = logger;
+		}
 
 		public List<ExtendedModule> Modules
 		{
@@ -19,11 +27,10 @@ namespace Coordinator.Modules
 				if (moduleCache == null)
 				{
 					var features = mf.GetFeatures();
-					var localIps = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces().SelectMany(x => x.GetIPProperties().UnicastAddresses).Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
 					moduleCache = mf.GetAllModules().Select(x =>
 					{
 						var currentFeatures = features.Where(y => x.FeatureIds.Contains(y.Id));
-						return new ExtendedModule(x, currentFeatures, localIps.Any(y => y.Address.Equals(x.Ip)));
+						return new ExtendedModule(x, currentFeatures, x.Ip.Equals(IPAddress.Loopback), logger);
 					}).ToList();
 				}
 				return moduleCache;
@@ -50,14 +57,27 @@ namespace Coordinator.Modules
 			return Modules.FirstOrDefault(x => x.IsLocal);
 		}
 
-		public void AddModule(string name, string ip)
+		public ExtendedModule UpsertModule(IPAddress ip)
 		{
-			mf.AddModule(new Module
+			var comm = new DataCommunicator(ip);
+			var dto = comm.GetConfig();
+			var mod = mf.UpsertModule(dto, ip);
+			var old = Modules.SingleOrDefault(x => x.Module.Id == mod.Id);
+			if (old != null)
 			{
-				FeatureIds = new int[0],
-				Ip = IPAddress.Parse(ip),
-				Name = name
-			});
+				moduleCache.Remove(old);
+			}
+			var features = mf.GetFeatures();
+			var newMod = new ExtendedModule(mod, features.Where(y => mod.FeatureIds.Contains(y.Id)),
+				mod.Ip.Equals(IPAddress.Loopback), logger);
+			moduleCache.Add(newMod);
+			return newMod;
+		}
+
+		public void UpdateIp(string name, IPAddress ip)
+		{
+			var mod = GetModule(name);
+			mf.UpdateIp(mod.Module.Id, ip);
 		}
 	}
 }

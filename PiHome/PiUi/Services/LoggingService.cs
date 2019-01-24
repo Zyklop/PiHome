@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Coordinator.Modules;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace PiUi.Services
 {
@@ -12,10 +13,12 @@ namespace PiUi.Services
 		private ExtendedModule mod;
 		private CancellationTokenSource canceller;
 		private ManualResetEvent stopDetector = new ManualResetEvent(false);
+		private ILogger logger;
 
-		public LoggingService()
+		public LoggingService(ILogger logger)
 		{
-			var mc = new ModuleController();
+			this.logger = logger;
+			var mc = new ModuleController(logger);
 			mod = mc.GetCurrentModule();
 			canceller = new CancellationTokenSource();
 		}

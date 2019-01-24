@@ -18,7 +18,7 @@ namespace DataPersistance.Modules
 		{
 			using (var context = new PiHomeContext())
 			{
-				return context.Led.Select(x => new LedValue
+				return context.Led.AsNoTracking().Select(x => new LedValue
 				{
 					Id = x.Id, ModuleId = x.ModuleId, X = x.Position.X, Y = x.Position.Y, Index = x.Index,
 					Color = new Color()
@@ -30,7 +30,7 @@ namespace DataPersistance.Modules
 		{
 			using (var context = new PiHomeContext())
 			{
-				return context.LedPreset.Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).GroupBy(x => x.Led.Module, x =>
+				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).GroupBy(x => x.Led.Module, x =>
 					new LedValue
 					{
 						Color = new Color(x.Color),
@@ -43,24 +43,54 @@ namespace DataPersistance.Modules
 			}
 		}
 
+		public PresetDto GetPresetDto(string name)
+		{
+			using (var context = new PiHomeContext())
+			{
+				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).Include(x => x.LedPresetValues).ThenInclude(x => x.Led).Select(x => new PresetDto
+				{
+					Name = x.Name, LastChangeDate = x.ChangeDate,
+					LedValues = x.LedPresetValues.Select(y => new LedPresetDto
+					{
+						ModuleName = y.Led.Module.Name,
+						Led = new LedDto {X = y.Led.Position.X, Index = y.Led.Index, Y = y.Led.Position.Y},
+						Color = new Color(y.Color)
+					}).ToArray()
+				}).SingleOrDefault();
+			}
+		}
+
+		public DateTime GetPresetChangeDate(string name)
+		{
+			using (var context = new PiHomeContext())
+			{
+				return context.LedPreset.AsNoTracking().SingleOrDefault(x => x.Name == name)?.ChangeDate ?? DateTime.MinValue;
+			}
+		}
+
 		public List<string> GetAllPresets()
 		{
 			using (var context = new PiHomeContext())
 			{
-				return context.LedPreset.Select(x => x.Name).ToList();
+				return context.LedPreset.AsNoTracking().Select(x => x.Name).ToList();
 			}
 		}
 
-		public void SavePreset(string name, IEnumerable<LedValue> leds)
+		public void SavePreset(string name, IEnumerable<LedValue> ledValues, DateTime changeDate)
 		{
+			var leds = ledValues.ToArray();
 			using (var context = new PiHomeContext())
 			{
 				var preset = context.LedPreset.Include(x => x.LedPresetValues).SingleOrDefault(x => x.Name == name);
+				if (preset != null && changeDate < preset.ChangeDate)
+				{
+					return;
+				}
 				using (var trans = context.Database.BeginTransaction())
 				{
 					if (preset == null)
 					{
-						preset = new LedPreset { Name = name, ChangeDate = DateTime.UtcNow };
+						preset = new LedPreset { Name = name, ChangeDate = changeDate };
 						context.LedPreset.Add(preset);
 					}
 					else
@@ -98,6 +128,24 @@ namespace DataPersistance.Modules
 			}
 		}
 
+		public LedValue[] ToLedValues(IEnumerable<LedPresetDto> dtoValues)
+		{
+			using (var context = new PiHomeContext())
+			{
+				var modules = context.Module.AsNoTracking().ToDictionary(x => x.Name, x => x.Id);
+				var ledsFromDb = context.Led.AsTracking().GroupBy(x => x.ModuleId).ToDictionary(x => x.Key, x => x.ToDictionary(y => y.Index, y => y.Id));
+				return dtoValues.Select(x =>
+				{
+					var mId = modules[x.ModuleName];
+					return new LedValue
+					{
+						Color = x.Color, ModuleId = mId, Id = ledsFromDb[mId][x.Led.Index], Index = x.Led.Index,
+						X = x.Led.X, Y = x.Led.Y
+					};
+				}).ToArray();
+			}
+		}
+
 		public void DeletePreset(string name)
 		{
 			using (var context = new PiHomeContext())
@@ -113,6 +161,7 @@ namespace DataPersistance.Modules
 	{
 		public int Index { get; set; }
 		public int ModuleId { get; set; }
+		public string ModuleName { get; set; }
 		public Color Color { get; set; }
 		public int Id { get; set; }
 		public double X { get; set; }
@@ -145,5 +194,19 @@ namespace DataPersistance.Modules
 		}
 
 		public bool Active => R == 0 && G == 0 && B == 0;
+	}
+
+	public class PresetDto
+	{
+		public string Name { get; set; }
+		public DateTime LastChangeDate { get; set; }
+		public LedPresetDto[] LedValues { get; set; }
+	}
+
+	public class LedPresetDto
+	{
+		public string ModuleName { get; set; }
+		public Color Color { get; set; }
+		public LedDto Led { get; set; }
 	}
 }

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PiUi.Services;
+using Serilog;
 
 namespace PiUi
 {
@@ -23,8 +25,10 @@ namespace PiUi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+	        services.AddSingleton<ILogger>(Log.Logger);
 	        services.AddHostedService<LoggingService>();
 	        services.AddHostedService<NetworkSupervisor>();
+	        services.AddHostedService<LanCommunicationService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

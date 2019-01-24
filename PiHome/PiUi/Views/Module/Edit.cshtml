@@ -6,25 +6,23 @@
 }
 
 <h2>Update Module</h2>
-@Html.ActionLink("Delete", "Delete", Model.ModuleId)
-<h3>Data</h3>
-@using (Html.BeginForm("Edit", "Module", FormMethod.Post))
+@if (string.IsNullOrEmpty(Model.ModuleName))
 {
-    <table>
-        <tr>
-            <td>Name</td>
-            <td>@Html.TextBoxFor(x => x.ModuleName)</td>
-        </tr>
-        <tr>
-            <td>Ip</td>
-            <td>@Html.TextBoxFor(x => x.Ip)</td>
-        </tr>
-        <tr>
-            <td>
-                <button type="submit">Save</button>
-            </td>
-        </tr>
-    </table>
+    <h3>Data</h3>
+    using (Html.BeginForm("Edit", "Module", FormMethod.Post))
+    {
+     <table>
+         <tr>
+             <td>Name</td>
+             <td>@Html.TextBoxFor(x => x.ModuleName)</td>
+         </tr>
+         <tr>
+             <td>
+                 <button type="submit">Save</button>
+             </td>
+         </tr>
+     </table>
+    }
 }
 <h3>Current Features</h3>
 <table>

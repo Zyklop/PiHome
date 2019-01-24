@@ -101,6 +101,7 @@ namespace DataPersistance.Modules
 					.SelectMany(x => x.Log)
 					.Where(x => x.Time > from && x.Time < to)
 					.AsNoTracking()
+					.OrderBy(x => x.Time)
 					.ToList();
 			}
 		}
