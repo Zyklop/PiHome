@@ -28,10 +28,12 @@ Standalone Meshed Home Automation using Raspberry Pi
 	* Photoresistor
 	* Other analogue sensors possible
 * Data logging
+* Module Sync over Braodcast or Multicast (autodetect) 
 
 # Planned features
-* Module synchronisation
-* Log-data visualialisation
+* Fancy custom features
+	* Delayed off
+	* Feedback via leds
 * People tracking
 	* Bluethooth RSSI trilateration with historical data to improve precision
 	* Pozyx
