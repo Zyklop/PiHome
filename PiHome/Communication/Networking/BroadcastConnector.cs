@@ -67,10 +67,6 @@ namespace Communication.Networking
 							{
 								logger.Error(response.Exception, "Broadcast failed");
 							}
-							else
-							{
-								logger.Information("Broadcast timed out");
-							}
 						}
 					}
 					catch (SocketException e)

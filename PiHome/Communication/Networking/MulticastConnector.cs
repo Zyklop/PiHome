@@ -58,13 +58,14 @@ namespace Communication.Networking
 			var ipep = new IPEndPoint(_multicastAddress, _listeningPort);
 
 			// Some weird memory exception occurs if I reuse the socket
-			var sendingSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-			sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(_multicastAddress));
-			sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, Ttl);
-			sendingSocket.Connect(ipep);
-			sendingSocket.Send(b, b.Length, SocketFlags.None);
-
-			sendingSocket.Close();
+			using (var sendingSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+			{
+				sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(_multicastAddress));
+				sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, Ttl);
+				sendingSocket.Connect(ipep);
+				sendingSocket.Send(b, b.Length, SocketFlags.None);
+				sendingSocket.Close();
+			}
 		}
 
 		public void Listen()
