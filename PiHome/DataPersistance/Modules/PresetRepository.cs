@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DataPersistance.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DataPersistance.Modules
 {
@@ -60,7 +61,76 @@ namespace DataPersistance.Modules
 			}
 		}
 
-		public DateTime GetPresetChangeDate(string name)
+		public void UpdatePresetActivation(PresetActivation presetActivation)
+		{
+			using (var context = new PiHomeContext())
+			{
+				var preset = context.PresetActivation.SingleOrDefault(x => x.Id == presetActivation.Id);
+				if (preset == null)
+				{
+                    CalculateNextActivation(ref presetActivation);
+					context.PresetActivation.Add(presetActivation);
+				}
+				else
+				{
+					preset.ActivationTime = presetActivation.ActivationTime;
+					preset.Active = presetActivation.Active;
+					preset.DaysOfWeek = presetActivation.DaysOfWeek;
+					preset.PresetId = presetActivation.PresetId;
+				    CalculateNextActivation(ref preset);
+                }
+				context.SaveChanges();
+			}
+		}
+
+	    public string GetPresetToActivate()
+	    {
+	        using (var context = new PiHomeContext())
+	        {
+	            var pa = context.PresetActivation.Include(x => x.Preset)
+	                .FirstOrDefault(x => x.NextActivationTime < DateTime.UtcNow);
+	            if (pa != null)
+	            {
+	                CalculateNextActivation(ref pa);
+	                context.SaveChanges();
+	                return pa.Preset.Name;
+	            }
+                return null;
+	        }
+	    }
+
+	    private void CalculateNextActivation(ref PresetActivation presetActivation)
+	    {
+	        if (!presetActivation.Active[0])
+	        {
+	            presetActivation.NextActivationTime = DateTime.MaxValue;
+	        }
+            var res = DateTime.Today;
+	        res += presetActivation.ActivationTime;
+	        var currentWeekday = res.DayOfWeek;
+	        for (int i = 1; i <= 8; i++)
+	        {
+	            if (i == 8)
+	            {
+	                res = res.AddDays(1);
+	                presetActivation.Active[0] = false;
+                    break;
+	            }
+	            var index = i + (int)currentWeekday;
+	            if (index >= 7)
+	            {
+	                index -= 7;
+	            }
+	            if (presetActivation.DaysOfWeek[index])
+	            {
+	                res = res.AddDays(i);
+                    break;
+	            }
+	        }
+            presetActivation.NextActivationTime = res;
+	    }
+
+	    public DateTime GetPresetChangeDate(string name)
 		{
 			using (var context = new PiHomeContext())
 			{
