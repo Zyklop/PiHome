@@ -61,27 +61,37 @@ namespace DataPersistance.Modules
 			}
 		}
 
-		public void UpdatePresetActivation(PresetActivation presetActivation)
+		public void UpdatePresetActivation(PresetActivation presetActivation, string presetName)
 		{
 			using (var context = new PiHomeContext())
 			{
-				var preset = context.PresetActivation.SingleOrDefault(x => x.Id == presetActivation.Id);
-				if (preset == null)
+			    var preset = context.LedPreset.Single(x => x.Name == presetName);
+				var activation = context.PresetActivation.SingleOrDefault(x => x.Id == presetActivation.Id);
+				if (activation == null)
 				{
+				    presetActivation.Preset = preset;
                     CalculateNextActivation(ref presetActivation);
 					context.PresetActivation.Add(presetActivation);
 				}
 				else
 				{
-					preset.ActivationTime = presetActivation.ActivationTime;
-					preset.Active = presetActivation.Active;
-					preset.DaysOfWeek = presetActivation.DaysOfWeek;
-					preset.PresetId = presetActivation.PresetId;
-				    CalculateNextActivation(ref preset);
+				    activation.Preset = preset;
+					activation.ActivationTime = presetActivation.ActivationTime;
+					activation.Active = presetActivation.Active;
+					activation.DaysOfWeek = presetActivation.DaysOfWeek;
+				    CalculateNextActivation(ref activation);
                 }
 				context.SaveChanges();
 			}
 		}
+
+	    public PresetActivation[] GetAllPresetActivations()
+	    {
+	        using (var context = new PiHomeContext())
+	        {
+	            return context.PresetActivation.Include(x => x.Preset).AsNoTracking().ToArray();
+	        }
+	    }
 
 	    public string GetPresetToActivate()
 	    {

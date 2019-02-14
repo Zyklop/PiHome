@@ -60,7 +60,6 @@ namespace Communication.Networking
 			// Some weird memory exception occurs if I reuse the socket
 			using (var sendingSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
 			{
-				sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(_multicastAddress));
 				sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, Ttl);
 				sendingSocket.Connect(ipep);
 				sendingSocket.Send(b, b.Length, SocketFlags.None);
