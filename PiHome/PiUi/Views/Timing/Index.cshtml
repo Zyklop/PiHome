@@ -6,3 +6,38 @@
 }
 
 <h2>Timers</h2>
+@Html.ActionLink("Add", "Create");
+<table>
+    <tr>
+        <td>Name</td>
+        <td>Time</td>
+        <td>Mo</td>
+        <td>Tu</td>
+        <td>We</td>
+        <td>Th</td>
+        <td>Fr</td>
+        <td>Sa</td>
+        <td>Su</td>
+    </tr>
+    @foreach (var activation in Model)
+    {
+    <tr>
+        <td>@Html.ActionLink(activation.SelectedPreset, "Edit", new { Id = activation.Id })</td>
+        @if (activation.Active)
+        {
+            <td>@activation.ActivationTime.ToString("hh:mm")</td>
+        }
+        else
+        {
+            <td><del>@activation.ActivationTime.ToString("hh:mm")</del></td>
+        }
+        <td><input type="checkbox" value=@activation.Monday onclick="return false;"/></td>
+        <td><input type="checkbox" value=@activation.Tuesday onclick="return false;"/></td>
+        <td><input type="checkbox" value=@activation.Wednesday onclick="return false;"/></td>
+        <td><input type="checkbox" value=@activation.Thursday onclick="return false;"/></td>
+        <td><input type="checkbox" value=@activation.Friday onclick="return false;"/></td>
+        <td><input type="checkbox" value=@activation.Saturday onclick="return false;"/></td>
+        <td><input type="checkbox" value=@activation.Sunday onclick="return false;"/></td>
+    </tr>
+    }
+</table>

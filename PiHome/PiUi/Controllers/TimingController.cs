@@ -33,7 +33,7 @@ namespace PiUi.Controllers
         public ActionResult Create()
         {
             var presets = ledController.GetAllPresets();
-            var model = new PresetActivationModel(){AllPresets = presets.ToArray()};
+            var model = new PresetActivationModel(){AllPresets = presets.ToArray(), Active = true};
             return View(model);
         }
 
