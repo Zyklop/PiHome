@@ -65,7 +65,5 @@ namespace PiUi.Controllers
 
             return RedirectToAction("Index");
         }
-
-
     }
 }
