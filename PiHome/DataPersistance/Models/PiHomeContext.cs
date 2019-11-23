@@ -22,6 +22,7 @@ namespace DataPersistance.Models
         public virtual DbSet<Log> Log { get; set; }
         public virtual DbSet<LogConfiguration> LogConfiguration { get; set; }
         public virtual DbSet<Module> Module { get; set; }
+        public virtual DbSet<PresetActivation> PresetActivation { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -134,6 +135,24 @@ namespace DataPersistance.Models
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(30);
+            });
+
+            modelBuilder.Entity<PresetActivation>(entity =>
+            {
+                entity.Property(e => e.ActivationTime).HasColumnType("time(6) without time zone");
+
+                entity.Property(e => e.Active)
+                    .IsRequired()
+                    .HasColumnType("bit(1)");
+
+                entity.Property(e => e.DaysOfWeek)
+                    .IsRequired()
+                    .HasColumnType("bit(7)[]");
+
+                entity.HasOne(d => d.Preset)
+                    .WithMany(p => p.PresetActivation)
+                    .HasForeignKey(d => d.PresetId)
+                    .HasConstraintName("FK_PresetActivation");
             });
         }
     }

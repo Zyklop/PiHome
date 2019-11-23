@@ -11,6 +11,8 @@ using Serilog;
 
 namespace PiUi.Controllers
 {
+
+    [Route("Module")]
     public class ModuleController : Controller
     {
 	    private Coordinator.Modules.ModuleController mc;
@@ -22,7 +24,8 @@ namespace PiUi.Controllers
 		    mc = new Coordinator.Modules.ModuleController(logger);
 	    }
 
-	    // GET: Module
+        [Route("")]
+        [Route("Index")]
         public ActionResult Index()
         {
 	        var vm = new ModuleViewModel
@@ -31,8 +34,7 @@ namespace PiUi.Controllers
 	        };
             return View(vm);
         }
-
-        // GET: Module/Details/5
+        [HttpGet("Detail/{id}")]
         public ActionResult Details(int id)
         {
 	        var module = mc.GetModule(id);
@@ -44,7 +46,9 @@ namespace PiUi.Controllers
             return View(vm);
         }
 
-	    public ActionResult Log(int moduleId, int featureId, DateTime from = default(DateTime), DateTime to = default(DateTime), int granularity = 100)
+
+        [Route("Log")]
+        public ActionResult Log(int moduleId, int featureId, DateTime from = default(DateTime), DateTime to = default(DateTime), int granularity = 100)
 	    {
 		    var module = mc.GetModule(moduleId);
 		    if (from == default(DateTime))
@@ -64,7 +68,7 @@ namespace PiUi.Controllers
 		    return View(vm);
 	    }
 
-        // GET: Module/Edit/5
+        [HttpGet("Edit/{id}")]
         public ActionResult Edit(int id)
         {
 	        var vm = GetModuleViewModel(id);
@@ -84,7 +88,7 @@ namespace PiUi.Controllers
 		    return vm;
 	    }
 
-	    [HttpPost]
+	    [HttpPost("Edit/{id}")]
         [ValidateAntiForgeryToken]
         public ActionResult Edit(EditModuleViewModel model)
         {
@@ -101,7 +105,7 @@ namespace PiUi.Controllers
             }
 		}
 		
-	    [HttpPost]
+	    [HttpPost("AddFeature")]
 	    [ValidateAntiForgeryToken]
 	    public ActionResult AddFeature(EditModuleViewModel model)
 	    {
@@ -110,7 +114,7 @@ namespace PiUi.Controllers
 		    return View("Edit", GetModuleViewModel(model.ModuleId));
 		}
 
-	    [HttpPost]
+	    [HttpPost("DeleteFeature")]
 	    [ValidateAntiForgeryToken]
 	    public ActionResult DeleteFeature(EditModuleViewModel model)
 	    {
@@ -122,7 +126,7 @@ namespace PiUi.Controllers
 			return View("Edit", model);
 		}
 
-	    [HttpPost]
+	    [HttpPost("AddStrip")]
 	    [ValidateAntiForgeryToken]
 	    public ActionResult AddStrip(EditModuleViewModel model)
 	    {
@@ -139,7 +143,8 @@ namespace PiUi.Controllers
 		    }
 	    }
 
-	    [IgnoreAntiforgeryToken]
+        [Route("Settings")]
+        [IgnoreAntiforgeryToken]
 	    public ActionResult Settings()
 	    {
 		    var mod = mc.GetCurrentModule();

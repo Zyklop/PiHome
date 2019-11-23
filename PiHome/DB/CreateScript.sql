@@ -181,6 +181,27 @@ ALTER TABLE ONLY public."LogConfiguration"
 ALTER TABLE ONLY public."LedPresetValues"
     ADD CONSTRAINT "FK_Preset" FOREIGN KEY ("PresetId") REFERENCES public."LedPreset"("Id") ON DELETE CASCADE;
 
+CREATE TABLE public."PresetActivation"
+(
+    "Id" serial NOT NULL,
+    "PresetId" integer NOT NULL,
+    "ActivationTime" time without time zone NOT NULL,
+    "DaysOfWeek" bit (7)[] NOT NULL,
+    "Active" bit NOT NULL,
+    "NextActivationTime" timestamp without time zone NOT NULL,
+    CONSTRAINT "PK_PresetActivation" PRIMARY KEY ("Id"),
+    CONSTRAINT "FK_PresetActivation" FOREIGN KEY ("PresetId")
+        REFERENCES public."LedPreset" ("Id") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)
+WITH (
+    OIDS = FALSE
+);
+
+ALTER TABLE public."PresetActivation"
+    OWNER to writer;
+
 INSERT INTO public."Feature"(
 	"Id", "Name", "Unit", "LogFactor")
 	VALUES (1, 'Temperature', '°C', 100.0);

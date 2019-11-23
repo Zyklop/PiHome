@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DataPersistance.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DataPersistance.Modules
 {
@@ -30,8 +31,7 @@ namespace DataPersistance.Modules
 		{
 			using (var context = new PiHomeContext())
 			{
-				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).GroupBy(x => x.Led.Module, x =>
-					new LedValue
+				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).Select(x => new {Value = new LedValue
 					{
 						Color = new Color(x.Color),
 						ModuleId = x.Led.ModuleId,
@@ -39,7 +39,7 @@ namespace DataPersistance.Modules
 						X = x.Led.Position.X,
 						Y = x.Led.Position.Y,
 						Id = x.LedId
-					}).ToDictionary(x => x.Key, x => x.ToArray());
+					}, Module = x.Led.Module}).AsEnumerable().GroupBy(x => x.Module).ToDictionary(x => x.Key, x => x.Select(y => y.Value).ToArray());
 			}
 		}
 
@@ -60,7 +60,86 @@ namespace DataPersistance.Modules
 			}
 		}
 
-		public DateTime GetPresetChangeDate(string name)
+		public void UpdatePresetActivation(PresetActivation presetActivation, string presetName)
+		{
+			using (var context = new PiHomeContext())
+			{
+			    var preset = context.LedPreset.Single(x => x.Name == presetName);
+				var activation = context.PresetActivation.SingleOrDefault(x => x.Id == presetActivation.Id);
+				if (activation == null)
+				{
+				    presetActivation.Preset = preset;
+                    CalculateNextActivation(ref presetActivation);
+					context.PresetActivation.Add(presetActivation);
+				}
+				else
+				{
+				    activation.Preset = preset;
+					activation.ActivationTime = presetActivation.ActivationTime;
+					activation.Active = presetActivation.Active;
+					activation.DaysOfWeek = presetActivation.DaysOfWeek;
+				    CalculateNextActivation(ref activation);
+                }
+				context.SaveChanges();
+			}
+		}
+
+	    public PresetActivation[] GetAllPresetActivations()
+	    {
+	        using (var context = new PiHomeContext())
+	        {
+	            return context.PresetActivation.Include(x => x.Preset).AsNoTracking().ToArray();
+	        }
+	    }
+
+	    public string GetPresetToActivate()
+	    {
+	        using (var context = new PiHomeContext())
+	        {
+	            var pa = context.PresetActivation.Include(x => x.Preset)
+	                .FirstOrDefault(x => x.NextActivationTime < DateTime.UtcNow);
+	            if (pa != null)
+	            {
+	                CalculateNextActivation(ref pa);
+	                context.SaveChanges();
+	                return pa.Preset.Name;
+	            }
+                return null;
+	        }
+	    }
+
+	    private void CalculateNextActivation(ref PresetActivation presetActivation)
+	    {
+	        if (!presetActivation.Active[0])
+	        {
+	            presetActivation.NextActivationTime = DateTime.MaxValue;
+	        }
+            var res = DateTime.Today;
+	        res += presetActivation.ActivationTime;
+	        var currentWeekday = res.DayOfWeek;
+	        for (int i = 1; i <= 8; i++)
+	        {
+	            if (i == 8)
+	            {
+	                res = res.AddDays(1);
+	                presetActivation.Active[0] = false;
+                    break;
+	            }
+	            var index = i + (int)currentWeekday;
+	            if (index >= 7)
+	            {
+	                index -= 7;
+	            }
+	            if (presetActivation.DaysOfWeek[index])
+	            {
+	                res = res.AddDays(i);
+                    break;
+	            }
+	        }
+            presetActivation.NextActivationTime = res;
+	    }
+
+	    public DateTime GetPresetChangeDate(string name)
 		{
 			using (var context = new PiHomeContext())
 			{

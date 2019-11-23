@@ -11,7 +11,7 @@ namespace Communication.Networking
 	public class MulticastConnector : IDisposable, INetworkConnector
 	{
 		private const int BufferLength = 2048;
-		private const int Ttl = 10;
+		private const int Ttl = 2;
 		private readonly IPAddress _multicastAddress = new IPAddress(new byte []{224, (byte)'r', (byte)'p', (byte)'i'});
 		private readonly int _listeningPort = 7489;
 		private readonly Socket _listeningSocket;
@@ -43,7 +43,8 @@ namespace Communication.Networking
 
 			// We want to reuse this socket
 			_listeningSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-		}
+            _listeningSocket.ExclusiveAddressUse = false;
+        }
 
 		~MulticastConnector()
 		{
@@ -60,8 +61,8 @@ namespace Communication.Networking
 			// Some weird memory exception occurs if I reuse the socket
 			using (var sendingSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
 			{
-				sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(_multicastAddress));
 				sendingSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, Ttl);
+                sendingSocket.ExclusiveAddressUse = false;
 				sendingSocket.Connect(ipep);
 				sendingSocket.Send(b, b.Length, SocketFlags.None);
 				sendingSocket.Close();
