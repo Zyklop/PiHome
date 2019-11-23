@@ -11,6 +11,7 @@ using Serilog;
 
 namespace PiUi.Controllers
 {
+    [Route("Timing")]
     public class TimingController : Controller
     {
         private LedController ledController;
@@ -22,6 +23,8 @@ namespace PiUi.Controllers
             ledController = new LedController(logger);
         }
 
+        [Route("")]
+        [Route("Index")]
         public IActionResult Index()
         {
             var activations = ledController.GetAllActivations();
@@ -29,6 +32,7 @@ namespace PiUi.Controllers
             return View(converted);
         }
 
+        [Route("/Create")]
         // GET: Preset/Create
         public ActionResult Create()
         {
@@ -37,7 +41,7 @@ namespace PiUi.Controllers
             return View(model);
         }
 
-        // GET: Preset/Edit/5
+        [HttpGet("Edit/{id}")]
         public ActionResult Edit(int id)
         {
             var presets = ledController.GetAllPresets();
@@ -46,7 +50,7 @@ namespace PiUi.Controllers
             return View(nameof(Create), model);
         }
 
-        [HttpPost]
+        [HttpPost("Update")]
         [ValidateAntiForgeryToken]
         public ActionResult Update(PresetActivationModel model)
         {

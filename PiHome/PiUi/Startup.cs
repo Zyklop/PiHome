@@ -30,6 +30,7 @@ namespace PiUi
 	        services.AddHostedService<NetworkSupervisor>();
 	        services.AddHostedService<LanCommunicationService>();
             services.AddHostedService<PresetActivator>();
+            services.AddMvc(options => options.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -38,7 +39,6 @@ namespace PiUi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
             }
             else
             {
@@ -46,13 +46,7 @@ namespace PiUi
             }
 
             app.UseStaticFiles();
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvc();
         }
     }
 }

@@ -31,8 +31,7 @@ namespace DataPersistance.Modules
 		{
 			using (var context = new PiHomeContext())
 			{
-				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).GroupBy(x => x.Led.Module, x =>
-					new LedValue
+				return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).Select(x => new {Value = new LedValue
 					{
 						Color = new Color(x.Color),
 						ModuleId = x.Led.ModuleId,
@@ -40,7 +39,7 @@ namespace DataPersistance.Modules
 						X = x.Led.Position.X,
 						Y = x.Led.Position.Y,
 						Id = x.LedId
-					}).ToDictionary(x => x.Key, x => x.ToArray());
+					}, Module = x.Led.Module}).AsEnumerable().GroupBy(x => x.Module).ToDictionary(x => x.Key, x => x.Select(y => y.Value).ToArray());
 			}
 		}
 
