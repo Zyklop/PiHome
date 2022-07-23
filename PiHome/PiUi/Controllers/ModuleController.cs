@@ -4,10 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Coordinator.Modules;
 using DataPersistance.Models;
+using DataPersistance.Modules;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PiUi.Models;
-using Serilog;
 
 namespace PiUi.Controllers
 {
@@ -15,87 +16,88 @@ namespace PiUi.Controllers
     [Route("Module")]
     public class ModuleController : Controller
     {
-	    private Coordinator.Modules.ModuleController mc;
-	    private ILogger logger;
+        private ILogger<ModuleController> logger;
+        private readonly ModuleFactory moduleFactory;
+        private readonly LogRepository logRepository;
 
-	    public ModuleController(ILogger logger)
-	    {
-		    this.logger = logger;
-		    mc = new Coordinator.Modules.ModuleController(logger);
-	    }
+        public ModuleController(ILogger<ModuleController> logger, ModuleFactory moduleFactory, LogRepository logRepository)
+        {
+            this.logger = logger;
+            this.moduleFactory = moduleFactory;
+            this.logRepository = logRepository;
+        }
 
         [Route("")]
         [Route("Index")]
         public ActionResult Index()
         {
-	        var vm = new ModuleViewModel
-	        {
-		        ExtendedModules = mc.Modules
-	        };
+            var vm = new ModulesViewModel
+            {
+                ExtendedModules = moduleFactory.GetAllModules().Select(x => new ExtendedModuleViewModel(x)).ToArray()
+            };
             return View(vm);
         }
         [HttpGet("Detail/{id}")]
         public ActionResult Details(int id)
         {
-	        var module = mc.GetModule(id);
-	        var vm = new DetailModuleViewModel
-			{
-				Module = module,
-				Values = module.GetAllValues()
-			};
+            var module = moduleFactory.GetModule(id);
+            var vm = new DetailModuleViewModel
+            {
+                Module = new ExtendedModuleViewModel(module),
+                Values = moduleFactory.GetAllValues(module.Id).Select(x => new FeatureWithLastValue(x.FeatureName, x.FeatureId, x.Value.ToString())).ToArray()
+            };
             return View(vm);
         }
 
 
         [Route("Log")]
         public ActionResult Log(int moduleId, int featureId, DateTime from = default(DateTime), DateTime to = default(DateTime), int granularity = 100)
-	    {
-		    var module = mc.GetModule(moduleId);
-		    if (from == default(DateTime))
-		    {
-			    from = DateTime.UtcNow.AddDays(-1);
-			}
-		    if (to == default(DateTime))
-		    {
-			    to = DateTime.UtcNow;
-		    }
-			var vm = new LogViewModel()
-		    {
-			    Module = module,
-				Feature = module.Features.Single(x => x.Id == featureId),
-				Values = module.GetLogValuesForRange(featureId, from, to, granularity)
-		    };
-		    return View(vm);
-	    }
+        {
+            var module = moduleFactory.GetModule(moduleId);
+            if (from == default(DateTime))
+            {
+                from = DateTime.UtcNow.AddDays(-1);
+            }
+            if (to == default(DateTime))
+            {
+                to = DateTime.UtcNow;
+            }
+
+            var feature = moduleFactory.GetFeature(featureId);
+            var logs = logRepository.GetLogs(moduleId, featureId, from, to);
+            var vm = new LogValuesViewModel(module.Name, feature.Name, feature.Unit,
+                logs.ToDictionary(x => x.Time, x => (decimal)x.Value), module.Id, feature.Id);
+            return View(vm);
+        }
 
         [HttpGet("Edit/{id}")]
         public ActionResult Edit(int id)
         {
-	        var vm = GetModuleViewModel(id);
-	        return View(vm);
+            var vm = GetModuleViewModel(id);
+            return View(vm);
         }
 
-	    private EditModuleViewModel GetModuleViewModel(int id)
-	    {
-		    var module = mc.GetModule(id);
-		    var vm = new EditModuleViewModel
-		    {
-			    ModuleId = module.Module.Id,
-			    CurrentFeatures = module.Features,
-			    ModuleName = module.Module.Name,
-			    PossibleFeatures = mc.GetAllPossibleFeatures().Where(x => module.Features.All(y => y.Id != x.Id)).ToList()
-		    };
-		    return vm;
-	    }
-
-	    [HttpPost("Edit/{id}")]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(EditModuleViewModel model)
+        private EditModuleViewModel GetModuleViewModel(int id)
         {
-	        try
-	        {
-		        var mod = mc.GetCurrentModule();
-		        mod.SetName(model.ModuleName);
+            var module = moduleFactory.GetModule(id);
+            var moduleFeatures = moduleFactory.GetFeatures().ToDictionary(x => x.Id, x => new FeatureWithLastValue(x.Name, x.Id, string.Empty));
+            var vm = new EditModuleViewModel
+            {
+                ModuleId = module.Id,
+                CurrentFeatures = module.FeatureIds.Select(x => moduleFeatures[x]).ToArray(),
+                ModuleName = module.Name,
+                PossibleFeatures = moduleFeatures.Where(x => !module.FeatureIds.Contains(x.Key)).Select(x => x.Value).ToArray()
+            };
+            return vm;
+        }
+
+        [HttpPost("Edit/{id}")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(int id, EditModuleViewModel model)
+        {
+            try
+            {
+                moduleFactory.SetName(id, model.ModuleName);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -103,53 +105,58 @@ namespace PiUi.Controllers
             {
                 return View("Edit", model);
             }
-		}
-		
-	    [HttpPost("AddFeature")]
-	    [ValidateAntiForgeryToken]
-	    public ActionResult AddFeature(EditModuleViewModel model)
-	    {
-		    mc.GetModule(model.ModuleId).AddFeature(model.FeatureToAdd, model.Interval);
+        }
 
-		    return View("Edit", GetModuleViewModel(model.ModuleId));
-		}
+        [HttpPost("AddFeature")]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddFeature(EditModuleViewModel model)
+        {
+            moduleFactory.AddFeature(model.ModuleId, model.FeatureToAdd, TimeSpan.Parse(model.Interval));
 
-	    [HttpPost("DeleteFeature")]
-	    [ValidateAntiForgeryToken]
-	    public ActionResult DeleteFeature(EditModuleViewModel model)
-	    {
-		    throw new NotImplementedException();
-			
-		    var featureToDelete = model.CurrentFeatures.Single(x => x.Id == model.FeatureToDelete);
-		    model.CurrentFeatures.Remove(featureToDelete);
-		    model.PossibleFeatures.Add(featureToDelete);
-			return View("Edit", model);
-		}
+            return View("Edit", GetModuleViewModel(model.ModuleId));
+        }
 
-	    [HttpPost("AddStrip")]
-	    [ValidateAntiForgeryToken]
-	    public ActionResult AddStrip(EditModuleViewModel model)
-	    {
-		    try
-		    {
-			    var module = mc.GetModule(model.ModuleId);
-				module.AddLedValues(model.StartIndex, model.StartX, model.StartY, model.EndIndex, model.EndX, model.EndY);
+        [HttpPost("DeleteFeature")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteFeature(EditModuleViewModel model)
+        {
+            throw new NotImplementedException();
 
-			    return RedirectToAction(nameof(Index));
-		    }
-		    catch
-		    {
-			    return View("Edit", model);
-		    }
-	    }
+            //   var featureToDelete = model.CurrentFeatures.Single(x => x.Id == model.FeatureToDelete);
+            //   model.CurrentFeatures.Remove(featureToDelete);
+            //   model.PossibleFeatures.Add(featureToDelete);
+            //return View("Edit", model);
+        }
 
-        [Route("Settings")]
-        [IgnoreAntiforgeryToken]
-	    public ActionResult Settings()
-	    {
-		    var mod = mc.GetCurrentModule();
-		    var settings = mod.GetSettings();
-		    return Json(settings);
-	    }
-	}
+        [HttpPost("AddStrip")]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddStrip(EditModuleViewModel model)
+        {
+            try
+            {
+                var ledValues = new List<LedValue>();
+                var numValues = model.EndIndex - model.StartIndex + 1;
+                var xdiff = (model.EndX - model.StartX) / numValues;
+                var ydiff = (model.EndY - model.StartY) / numValues;
+                for (int i = 0; i < numValues; i++)
+                {
+                    ledValues.Add(new LedValue
+                    {
+                        Index = model.StartIndex + i,
+                        ModuleId = model.ModuleId,
+                        ModuleName = model.ModuleName,
+                        X = model.StartX + xdiff * i,
+                        Y = model.StartY + ydiff * i
+                    });
+                }
+                moduleFactory.AddLedValues(ledValues);
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View("Edit", model);
+            }
+        }
+    }
 }

@@ -25,7 +25,7 @@ class Manager(object):
 
     def SetPixel(self, index, r, g, b, bright_percent=100):
         self.check()
-        self.strip,SetPixel(index, r, g, b, bright_percent)
+        self.strip.set_pixel(index, r, g, b, bright_percent)
 
     def Render(self):
         self.check()

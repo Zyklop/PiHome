@@ -4,196 +4,235 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Communication.Networking
 {
-	public class MasterNetworker : IDisposable
-	{
-		private static BroadcastConnector _broad;
-		private static MulticastConnector _multi;
-		private static int _broadcastsAhead = 0;
-		private string _moduleName;
-		private readonly ConcurrentDictionary<string, IPAddress> _knownModules = new ConcurrentDictionary<string, IPAddress>();
-		private ILogger logger;
+    public class MasterNetworker : IDisposable
+    {
+        private BroadcastConnector broad;
+        private MulticastConnector multi;
+        private static int broadcastsAhead = 0;
+        private string _moduleName;
+        private readonly ConcurrentDictionary<string, IPAddress> _knownModules = new ConcurrentDictionary<string, IPAddress>();
+        private ILogger<MasterNetworker> logger;
+        private AnnouncementMode announcementMode = AnnouncementMode.Both;
 
-		public MasterNetworker(string moduleName, ILogger logger)
-		{
-			this.logger = logger;
-			_moduleName = moduleName;
-			if (_broad == null && _multi == null)
-			{
-				_broad = new BroadcastConnector(logger);
-				_multi = new MulticastConnector(logger);
-				_broad.Listen();
-				_multi.Listen();
-			}
+        public MasterNetworker(string moduleName, ILogger<MasterNetworker> logger, BroadcastConnector broad, MulticastConnector multi)
+        {
+            _moduleName = moduleName;
+            this.logger = logger;
+            this.broad = broad;
+            this.multi = multi;
+            broad.OnDataRecived += MessageRecived;
+            multi.OnDataRecived += MessageRecived;
+        }
 
-			if (_broad != null)
-			{
-				_broad.OnDataRecived += MessageRecived;
-			}
-			if (_multi != null)
-			{
-				_multi.OnDataRecived += MessageRecived;
-			}
-		}
+        private void MessageRecived(object? sender, TransmissionEventArgs e)
+        {
 
-		private void MessageRecived(object sender, TransmissionEventArgs e)
-		{
+            var localIps = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces().SelectMany(x => x.GetIPProperties().UnicastAddresses).Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
+            var isLocal = localIps.Any(x => x.Address.Equals(e.Ip));
+            if (isLocal)
+            {
+                return;
+            }
+            if (sender is MulticastConnector)
+            {
+                broad.OnDataRecived -= MessageRecived;
+                broad.StopListening();
+                announcementMode = AnnouncementMode.Multicast;
+            }
+            else if (sender is BroadcastConnector)
+            {
+                if (broadcastsAhead > 10)
+                {
+                    multi.OnDataRecived -= MessageRecived;
+                    multi.StopListening();
+                    announcementMode = AnnouncementMode.Braodcast;
+                }
+                else
+                {
+                    broadcastsAhead++;
+                }
+            }
 
-			var localIps = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces().SelectMany(x => x.GetIPProperties().UnicastAddresses).Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork);
-			var isLocal = localIps.Any(x => x.Address.Equals(e.Ip));
-			if (isLocal)
-			{
-				return;
-			}
-			if (_broad != null && sender is MulticastConnector)
-			{
-				_broad.OnDataRecived -= MessageRecived;
-				_broad.StopListening();
-				_broad.Dispose();
-				_broad = null;
-			}
-			else if(_multi != null && sender is BroadcastConnector)
-			{
-				if (_broadcastsAhead > 10)
-				{
-					_multi.OnDataRecived -= MessageRecived;
-					_multi.StopListening();
-					_multi.Dispose();
-					_multi = null;
-				}
-				else
-				{
-					_broadcastsAhead++;
-				}
-			}
-			
-			var moduleName = e.Data.ModuleName.Value;
-			var eventType = e.Data.Type.Value;
+            var moduleName = e.Data.ModuleName.Value;
+            var eventType = e.Data.Type.Value;
 
-			if (!_knownModules.ContainsKey(moduleName))
-			{
-				_knownModules.TryAdd(moduleName, e.Ip);
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs{ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress});
-			}
-			else if (!_knownModules[moduleName].Equals(e.Ip))
-			{
-				_knownModules[moduleName] = e.Ip;
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress });
-			}
+            if (!_knownModules.ContainsKey(moduleName))
+            {
+                _knownModules.TryAdd(moduleName, e.Ip);
+                OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress });
+            }
+            else if (!_knownModules[moduleName].Equals(e.Ip))
+            {
+                _knownModules[moduleName] = e.Ip;
+                OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleAddress });
+            }
 
-			if (eventType == "PresetChange")
-			{
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs
-				{
-					ModuleIp = e.Ip,
-					ModuleName = moduleName,
-					Type = e.Data.Deleted.Value ? ChangeType.PresetDeleted : ChangeType.PresetUpserted,
-					PresetName = e.Data.PresetName.Value
-				});
-			}
-			else if (eventType == "ModuleChange")
-			{
-				OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleSettings });
-			}
-		}
+            if (eventType == "PresetChange")
+            {
+                OnChange?.Invoke(this, new ChangeDetectedEventArgs
+                {
+                    ModuleIp = e.Ip,
+                    ModuleName = moduleName,
+                    Type = e.Data.Deleted.Value ? ChangeType.PresetDeleted : ChangeType.PresetUpserted,
+                    PresetName = e.Data.PresetName.Value
+                });
+            }
+            else if (eventType == "ModuleChange")
+            {
+                OnChange?.Invoke(this, new ChangeDetectedEventArgs { ModuleIp = e.Ip, ModuleName = moduleName, Type = ChangeType.ModuleSettings });
+            }
+        }
 
-		public void Announce()
-		{
-			if (string.IsNullOrEmpty(_moduleName))
-			{
-				throw new ArgumentException("Modulename is not allowed to be empty");
-			}
-			logger.Debug("Announcing on:" + (_multi==null?"":" multicast") + (_broad==null?"":" broadcast"));
-			_multi?.Send(new ModuleAnnouncment {ModuleName = _moduleName});
-			_broad?.Send(new ModuleAnnouncment {ModuleName = _moduleName});
-		}
+        public void Announce()
+        {
+            if (string.IsNullOrEmpty(_moduleName))
+            {
+                throw new ArgumentException("Modulename is not allowed to be empty");
+            }
+            logger.LogDebug($"Announcing on: {announcementMode}");
+            var data = new ModuleAnnouncment { ModuleName = _moduleName };
+            switch (announcementMode)
+            {
+                case AnnouncementMode.Both:
+                    broad.Send(data);
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Multicast:
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Braodcast:
+                    broad.Send(data);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
-		public void ModuleChanges()
-		{
-			if (string.IsNullOrEmpty(_moduleName))
-			{
-				throw new ArgumentException("Modulename is not allowed to be empty");
-			}
-			_multi?.Send(new ModuleChanged {ModuleName = _moduleName});
-			_broad?.Send(new ModuleChanged {ModuleName = _moduleName});
-		}
+        public void ModuleChanges()
+        {
+            if (string.IsNullOrEmpty(_moduleName))
+            {
+                throw new ArgumentException("Modulename is not allowed to be empty");
+            }
+            var data = new ModuleChanged { ModuleName = _moduleName };
+            switch (announcementMode)
+            {
+                case AnnouncementMode.Both:
+                    broad.Send(data);
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Multicast:
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Braodcast:
+                    broad.Send(data);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
-		public void PresetChanges(string presetName)
-		{
-			if (string.IsNullOrEmpty(_moduleName))
-			{
-				throw new ArgumentException("Modulename is not allowed to be empty");
-			}
-			_multi?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName});
-			_broad?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName});
-		}
-		public void PresetDeleted(string presetName)
-		{
-			if (string.IsNullOrEmpty(_moduleName))
-			{
-				throw new ArgumentException("Modulename is not allowed to be empty");
-			}
-			_multi?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName, Deleted = true});
-			_broad?.Send(new PresetChanged {ModuleName = _moduleName, PresetName = presetName, Deleted = true});
-		}
+        public void PresetChanges(string presetName)
+        {
+            if (string.IsNullOrEmpty(_moduleName))
+            {
+                throw new ArgumentException("Modulename is not allowed to be empty");
+            }
+            var data = new PresetChanged { ModuleName = _moduleName, PresetName = presetName };
+            switch (announcementMode)
+            {
+                case AnnouncementMode.Both:
+                    broad.Send(data);
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Multicast:
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Braodcast:
+                    broad.Send(data);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
-		public event EventHandler<ChangeDetectedEventArgs> OnChange; 
+        public void PresetDeleted(string presetName)
+        {
+            if (string.IsNullOrEmpty(_moduleName))
+            {
+                throw new ArgumentException("Modulename is not allowed to be empty");
+            }
+            var data = new PresetChanged { ModuleName = _moduleName, PresetName = presetName, Deleted = true };
+            switch (announcementMode)
+            {
+                case AnnouncementMode.Both:
+                    broad.Send(data);
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Multicast:
+                    multi.Send(data);
+                    break;
+                case AnnouncementMode.Braodcast:
+                    broad.Send(data);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
-		private class ModuleAnnouncment
-		{
-			public string Type => "Announcement";
-			public string ModuleName { get; set; }
-		}
+        public event EventHandler<ChangeDetectedEventArgs> OnChange;
 
-		private class PresetChanged
-		{
-			public string Type => "PresetChange";
-			public string PresetName { get; set; }
-			public string ModuleName { get; set; }
-			public bool Deleted { get; set; }
-		}
+        private class ModuleAnnouncment
+        {
+            public string Type => "Announcement";
+            public string ModuleName { get; set; }
+        }
 
-		private class ModuleChanged
-		{
-			public string Type => "ModuleChange";
-			public string ModuleName { get; set; }
-		}
+        private class PresetChanged
+        {
+            public string Type => "PresetChange";
+            public string PresetName { get; set; }
+            public string ModuleName { get; set; }
+            public bool Deleted { get; set; }
+        }
 
-		public void Dispose()
-		{
-			if (_multi != null)
-			{
-				_multi.OnDataRecived -= MessageRecived;
-				_multi.StopListening();
-				_multi.Dispose();
-				_multi = null;
-			}
-			if (_broad != null)
-			{
-				_broad.OnDataRecived -= MessageRecived;
-				_broad.StopListening();
-				_broad.Dispose();
-				_broad = null;
-			}
-		}
-	}
+        private class ModuleChanged
+        {
+            public string Type => "ModuleChange";
+            public string ModuleName { get; set; }
+        }
 
-	public class ChangeDetectedEventArgs : EventArgs
-	{
-		public string ModuleName { get; set; }
-		public IPAddress ModuleIp { get; set; }
-		public string PresetName { get; set; }
-		public ChangeType Type { get; set; }
-	}
+        public void Dispose()
+        {
+            multi.OnDataRecived -= MessageRecived;
+            broad.OnDataRecived -= MessageRecived;
+        }
+    }
 
-	public enum ChangeType
-	{
-		ModuleAddress,
-		ModuleSettings,
-		PresetUpserted,
-		PresetDeleted
-	}
+    public class ChangeDetectedEventArgs : EventArgs
+    {
+        public string ModuleName { get; set; }
+        public IPAddress ModuleIp { get; set; }
+        public string PresetName { get; set; }
+        public ChangeType Type { get; set; }
+    }
+
+    public enum ChangeType
+    {
+        ModuleAddress,
+        ModuleSettings,
+        PresetUpserted,
+        PresetDeleted
+    }
+
+    public enum AnnouncementMode
+    {
+        Both,
+        Multicast,
+        Braodcast
+    }
 }

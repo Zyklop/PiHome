@@ -2,8 +2,8 @@
 
 namespace PiUi.Models
 {
-	public class PresetOverview
-	{
-		public List<string> Presets { get; set; }
-	}
+    public class PresetOverview
+    {
+        public string[] Presets { get; set; }
+    }
 }

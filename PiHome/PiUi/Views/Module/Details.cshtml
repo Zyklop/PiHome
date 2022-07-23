@@ -22,12 +22,12 @@
             <td>
                 @Html.ActionLink(value.Feature.Name, "Log", new
                 {
-                    moduleId = Model.Module.Module.Id,
+                    moduleId = Model.Id,
                     featureId = value.Feature.Id
                 })
             </td>
             <td>
-                <label>@value.Lastvalue</label>
+                <label>@value.LastValue</label>
             </td>
         </tr>
     }

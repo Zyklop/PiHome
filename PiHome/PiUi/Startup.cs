@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PiUi.Services;
-using Serilog;
 
 namespace PiUi
 {
@@ -25,7 +24,6 @@ namespace PiUi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-	        services.AddSingleton<ILogger>(Log.Logger);
 	        services.AddHostedService<LoggingService>();
 	        services.AddHostedService<NetworkSupervisor>();
 	        services.AddHostedService<LanCommunicationService>();
@@ -44,7 +42,7 @@ namespace PiUi
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
+            
             app.UseStaticFiles();
             app.UseMvc();
         }

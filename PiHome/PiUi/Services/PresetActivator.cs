@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Coordinator.Modules;
 using DataPersistance.Modules;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace PiUi.Services
 {
@@ -14,13 +13,11 @@ namespace PiUi.Services
         private LedController lc;
         private CancellationTokenSource canceller;
         private ManualResetEvent stopDetector = new ManualResetEvent(false);
-        private ILogger logger;
 
-        public PresetActivator(ILogger logger)
+        public PresetActivator(PresetRepository repo, LedController lc)
         {
-            this.logger = logger;
-            lc = new LedController(logger);
-            repo = new PresetRepository();
+            this.repo = repo;
+            this.lc = lc;
             canceller = new CancellationTokenSource();
         }
 
