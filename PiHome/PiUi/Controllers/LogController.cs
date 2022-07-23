@@ -19,8 +19,8 @@ namespace PiUi.Controllers
 			this.repo = repo;
 		}
 
-		// GET api/<controller>/5
-		[HttpGet("{moduleId}/{featureId}")]
+        [Route("api/log/get")]
+        [HttpGet("{moduleId}/{featureId}")]
 		public object Get(int moduleId, int featureId, DateTime from, DateTime to)
 		{
 			var logs = repo.GetLogs(moduleId, featureId, from, to);

@@ -1,0 +1,28 @@
+﻿@model PiUi.Models.PresetActivationModel
+
+@{
+    ViewBag.Title = "Update Timer";
+    Layout = "_Layout";
+}
+
+<h2>Update Timer</h2>
+@Html.BeginForm("Update", "Timing", FormMethod.Post)
+{
+<input type="hidden" name="Id" value="@Model.Id" /><br />
+<select name="SelectedPreset">
+    @foreach (var preset in Model.AllPresets)
+    {
+        <option value="@preset" selected="@(Model.SelectedPreset == preset)">@preset</option>
+    }
+</select><br />
+<input type="time" name="ActivationTime" value="@Model.ActivationTime.ToString("hh:mm")" /><br />
+<label><input type="checkbox" name="Active" value="@Model.Active" />Active</label><br />
+<label><input type="checkbox" name="Monday" value="@Model.Monday" />Monday</label><br />
+<label><input type="checkbox" name="Tuesday" value="@Model.Tuesday" />Tuesday</label><br />
+<label><input type="checkbox" name="Wednesday" value="@Model.Wednesday" />Wednesday</label><br />
+<label><input type="checkbox" name="Thursday" value="@Model.Thursday" />Thursday</label><br />
+<label><input type="checkbox" name="Friday" value="@Model.Friday" />Friday</label><br />
+<label><input type="checkbox" name="Saturday" value="@Model.Saturday" />Saturday</label><br />
+<label><input type="checkbox" name="Sunday" value="@Model.Sunday" />Sunday</label><br />
+<input type="submit" name="Save" value="Save"/>
+}

@@ -8,6 +8,7 @@ namespace DataPersistance.Models
         public LedPreset()
         {
             LedPresetValues = new HashSet<LedPresetValues>();
+            PresetActivation = new HashSet<PresetActivation>();
         }
 
         public int Id { get; set; }
@@ -15,5 +16,6 @@ namespace DataPersistance.Models
         public DateTime ChangeDate { get; set; }
 
         public ICollection<LedPresetValues> LedPresetValues { get; set; }
+        public ICollection<PresetActivation> PresetActivation { get; set; }
     }
 }

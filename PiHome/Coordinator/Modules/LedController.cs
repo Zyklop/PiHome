@@ -101,5 +101,15 @@ namespace Coordinator.Modules
 				comm.TurnOff();
 			}
 		}
+
+	    public PresetActivation[] GetAllActivations()
+	    {
+	        return repo.GetAllPresetActivations();
+	    }
+
+	    public void SavePresetActivation(PresetActivation activation, string presetName)
+	    {
+            repo.UpdatePresetActivation(activation, presetName);
+	    }
 	}
 }

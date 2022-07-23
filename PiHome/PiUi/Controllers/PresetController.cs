@@ -11,6 +11,7 @@ using Serilog;
 
 namespace PiUi.Controllers
 {
+    [Route("Preset")]
     public class PresetController : Controller
     {
 	    private LedController ledController;
@@ -21,9 +22,10 @@ namespace PiUi.Controllers
 		    this.logger = logger;
 		    ledController = new LedController(logger);
 	    }
-
-		// GET: Preset
-		public ActionResult Index()
+        
+        [Route("")]
+        [Route("Index")]
+        public ActionResult Index()
 		{
 			var presetModel = new PresetOverview
 			{
@@ -32,14 +34,14 @@ namespace PiUi.Controllers
 			return View(presetModel);
         }
 
-        // GET: Preset/Create
+        [Route("Create")]
         public ActionResult Create()
         {
 	        var model = new PresetViewModel {LedValues = ledController.GetAllLeds(), Name = "Name"};
             return View(model);
         }
 
-        // GET: Preset/Edit/5
+        [HttpGet("Edit/{name}")]
         public ActionResult Edit(string name)
         {
 			var model = new PresetViewModel
@@ -50,26 +52,27 @@ namespace PiUi.Controllers
             return View(nameof(Create), model);
 		}
 
-	    // GET: Preset/Activate/5
-	    public ActionResult Activate(string name)
+        [HttpGet("Activate/{name}")]
+        public ActionResult Activate(string name)
 	    {
 			ledController.Activate(name);
 		    return RedirectToAction("Index");
 	    }
-
+        
+        [Route("GetAllPresets")]
 		[IgnoreAntiforgeryToken]
 		public ActionResult GetAllPresets()
 		{
 			return Json(ledController.GetAllPresets());
 		}
 
+        [HttpGet("Get/{name}")]
 	    public ActionResult Get(string name)
 	    {
 		    return Json(ledController.GetPresetDto(name));
 	    }
 
-		// POST: Preset/Edit/5
-		[HttpPost]
+		[HttpPost("Save")]
         [ValidateAntiForgeryToken]
         public ActionResult Save([FromBody] PresetViewModel collection)
         {
@@ -84,8 +87,7 @@ namespace PiUi.Controllers
             }
 		}
 
-	    // POST: Preset/Preview/5
-	    [HttpPost]
+	    [HttpPost("/Preview")]
 	    [ValidateAntiForgeryToken]
 	    public ActionResult Preview([FromBody] PresetViewModel collection)
 	    {
@@ -93,8 +95,7 @@ namespace PiUi.Controllers
 			return RedirectToAction(nameof(Edit), collection.Name);
 	    }
 
-        // POST: Preset/Delete/5
-        [HttpPost]
+        [HttpPost("Delete/{name}")]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(string name)
         {
