@@ -20,10 +20,10 @@
     {
         <tr>
             <td>
-                @Html.ActionLink(value.Feature.Name, "Log", new
+                @Html.ActionLink(value.FeatureName, "Log", new
                 {
                     moduleId = Model.Id,
-                    featureId = value.Feature.Id
+                    featureId = value.FeatureId
                 })
             </td>
             <td>
