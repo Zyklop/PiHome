@@ -18,9 +18,9 @@ namespace Communication.Networking
         private ILogger<MasterNetworker> logger;
         private AnnouncementMode announcementMode = AnnouncementMode.Both;
 
-        public MasterNetworker(string moduleName, ILogger<MasterNetworker> logger, BroadcastConnector broad, MulticastConnector multi)
+        public MasterNetworker(ILogger<MasterNetworker> logger, BroadcastConnector broad, MulticastConnector multi)
         {
-            _moduleName = moduleName;
+            _moduleName = Environment.MachineName;
             this.logger = logger;
             this.broad = broad;
             this.multi = multi;

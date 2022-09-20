@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Communication.Networking;
+using Coordinator.Modules;
+using DataPersistance.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +31,12 @@ namespace PiUi
 	        services.AddHostedService<NetworkSupervisor>();
 	        services.AddHostedService<LanCommunicationService>();
             services.AddHostedService<PresetActivator>();
+            services.AddTransient<ModuleFactory>();
+            services.AddTransient<BroadcastConnector>();
+            services.AddTransient<MulticastConnector>();
+            services.AddTransient<LedController>();
+            services.AddTransient<PresetRepository>();
+            services.AddSingleton<MasterNetworker>();
             services.AddMvc(options => options.EnableEndpointRouting = false);
         }
 
