@@ -18,9 +18,10 @@ namespace PiUi.Services
         private Module module;
         private SensorCommunicator sensor;
 
-        public LoggingService(ModuleFactory moduleFactory)
+        public LoggingService(ModuleFactory moduleFactory, LogRepository logRepository)
         {
             this.moduleFactory = moduleFactory;
+            this.logRepository = logRepository;
             canceller = new CancellationTokenSource();
         }
 		

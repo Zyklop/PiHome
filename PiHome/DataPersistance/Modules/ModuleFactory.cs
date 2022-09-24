@@ -133,7 +133,7 @@ namespace DataPersistance.Modules
         {
             using var context = new PiHomeContext();
             return context.Module.AsNoTracking()
-                .Single(x => x.Ip == IPAddress.Loopback);
+                .Single(x => EF.Functions.Host(x.Ip) == "127.0.0.1");
         }
 
         public Feature GetFeature(int featureId)

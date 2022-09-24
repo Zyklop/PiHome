@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Communication.Networking;
+﻿using Communication.Networking;
 using Coordinator.Modules;
 using DataPersistance.Modules;
 using Microsoft.AspNetCore.Builder;
@@ -26,7 +21,6 @@ namespace PiUi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
 	        services.AddHostedService<LoggingService>();
 	        services.AddHostedService<NetworkSupervisor>();
 	        services.AddHostedService<LanCommunicationService>();
@@ -36,8 +30,9 @@ namespace PiUi
             services.AddTransient<MulticastConnector>();
             services.AddTransient<LedController>();
             services.AddTransient<PresetRepository>();
+            services.AddTransient<LogRepository>();
             services.AddSingleton<MasterNetworker>();
-            services.AddMvc(options => options.EnableEndpointRouting = false);
+            services.AddMvc(options => options.EnableEndpointRouting = false).AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

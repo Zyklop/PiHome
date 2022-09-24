@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using DataPersistance.Modules;
+using Newtonsoft.Json;
 
 namespace PiUi.Models
 {
@@ -8,9 +9,21 @@ namespace PiUi.Models
         public LedValueViewModel[] LedValues { get; set; }
         public string Name { get; set; }
     }
-
+    
     public class LedValueViewModel
     {
+        public int Id { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public int R { get; set; }
+        public int G { get; set; }
+        public int B { get; set; }
+        public int Brightness { get; set; }
+
+        public LedValueViewModel()
+        {
+        }
+
         public LedValueViewModel(LedValue ledValue)
         {
             X = ledValue.X;
@@ -21,13 +34,5 @@ namespace PiUi.Models
             B = ledValue.Color.B;
             Brightness = ledValue.Color.Brightness;
         }
-
-        public double X { get; }
-        public double Y { get; }
-        public int R { get; set; }
-        public int G { get; set; }
-        public int B { get; set; }
-        public int Brightness { get; }
-        public int Id { get; set; }
     }
 }

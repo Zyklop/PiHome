@@ -120,10 +120,6 @@ namespace DataPersistance.Models
 
             modelBuilder.Entity<Module>(entity =>
             {
-                entity.HasIndex(e => e.Ip)
-                    .HasName("UC_Ip")
-                    .IsUnique();
-
                 entity.HasIndex(e => e.Name)
                     .HasName("UC_Module_Name")
                     .IsUnique();

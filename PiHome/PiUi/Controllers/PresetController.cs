@@ -73,7 +73,7 @@ namespace PiUi.Controllers
         }
 
         [HttpPost("Save")]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public ActionResult Save([FromBody] PresetViewModel collection)
         {
             try
@@ -88,7 +88,7 @@ namespace PiUi.Controllers
         }
 
         [HttpPost("/Preview")]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public ActionResult Preview([FromBody] PresetViewModel collection)
         {
             ledController.Activate(ConvertBack(collection.LedValues));
