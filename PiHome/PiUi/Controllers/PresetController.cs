@@ -87,7 +87,7 @@ namespace PiUi.Controllers
             }
         }
 
-        [HttpPost("/Preview")]
+        [HttpPost("Preview")]
         [IgnoreAntiforgeryToken]
         public ActionResult Preview([FromBody] PresetViewModel collection)
         {
@@ -105,13 +105,20 @@ namespace PiUi.Controllers
 
         private IEnumerable<LedValue> ConvertBack(LedValueViewModel[] values)
         {
-            return values.Select(x => new LedValue()
+            var ledsById = ledController.GetAllLeds().ToDictionary(x => x.Id, x => x);
+            foreach (var model in values)
             {
-                Id = x.Id,
-                Color = new Color { R = (byte)x.R, Brightness = (byte)x.Brightness, B = (byte)x.B, G = (byte)x.G },
-                X = x.X,
-                Y = x.Y
-            });
+                var fromDb = ledsById[model.Id];
+                yield return new LedValue()
+                {
+                    Id = model.Id,
+                    Color = new Color { R = (byte)model.R, Brightness = (byte)model.Brightness, B = (byte)model.B, G = (byte)model.G },
+                    X = fromDb.X,
+                    Y = fromDb.Y,
+                    Index = fromDb.Index,
+                    ModuleId = fromDb.ModuleId
+                };
+            }
         }
     }
 }
