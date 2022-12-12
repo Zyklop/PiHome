@@ -59,6 +59,13 @@ namespace PiUi.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet("Delete/{name}")]
+        public ActionResult Delete(string name)
+        {
+            ledController.DeletePreset(name);
+            return RedirectToAction(nameof(Index));
+        }
+
         [Route("GetAllPresets")]
         [IgnoreAntiforgeryToken]
         public ActionResult GetAllPresets()
@@ -93,14 +100,6 @@ namespace PiUi.Controllers
         {
             ledController.Activate(ConvertBack(collection.LedValues));
             return RedirectToAction(nameof(Edit), collection.Name);
-        }
-
-        [HttpPost("Delete/{name}")]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(string name)
-        {
-            ledController.DeletePreset(name);
-            return RedirectToAction(nameof(Index));
         }
 
         private IEnumerable<LedValue> ConvertBack(LedValueViewModel[] values)
