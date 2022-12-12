@@ -118,12 +118,8 @@ namespace PiUi.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteFeature(EditModuleViewModel model)
         {
-            throw new NotImplementedException();
-
-            //   var featureToDelete = model.CurrentFeatures.Single(x => x.Id == model.FeatureToDelete);
-            //   model.CurrentFeatures.Remove(featureToDelete);
-            //   model.PossibleFeatures.Add(featureToDelete);
-            //return View("Edit", model);
+            moduleFactory.RemoveFeature(model.ModuleId, model.FeatureToDelete);
+            return View("Edit", GetModuleViewModel(model.ModuleId));
         }
 
         [HttpPost("AddStrip")]

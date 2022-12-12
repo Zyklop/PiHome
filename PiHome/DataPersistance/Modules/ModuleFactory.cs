@@ -156,6 +156,19 @@ namespace DataPersistance.Modules
             var module = context.Module.Include(x => x.Led).AsNoTracking().SingleOrDefault(x => x.Name == moduleName);
             return module;
         }
+
+        public void RemoveFeature(int moduleId, int featureId)
+        {
+            using var context = new PiHomeContext();
+            var module = context.Module.Include(x => x.LogConfiguration).Single(x => x.Id == moduleId);
+            module.FeatureIds = module.FeatureIds.Except(new[] { featureId }).ToArray();
+            var logConfig = module.LogConfiguration.Where(x => x.FeatureId == featureId);
+            foreach (var config in logConfig)
+            {
+                context.LogConfiguration.Remove(config);
+            }
+            context.SaveChanges();
+        }
     }
 
     public class LedDto
