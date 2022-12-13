@@ -33,12 +33,21 @@ namespace DataPersistance.Modules
             using var context = new PiHomeContext();
             foreach (var ledValue in leds)
             {
-                context.Led.Add(new Led
+                var existing =
+                    context.Led.FirstOrDefault(x => x.ModuleId == ledValue.ModuleId && x.Index == ledValue.Index);
+                if (existing == null)
                 {
-                    ModuleId = ledValue.ModuleId,
-                    Index = ledValue.Index,
-                    Position = new NpgsqlPoint(ledValue.X, ledValue.Y)
-                });
+                    context.Led.Add(new Led
+                    {
+                        ModuleId = ledValue.ModuleId,
+                        Index = ledValue.Index,
+                        Position = new NpgsqlPoint(ledValue.X, ledValue.Y)
+                    });
+                }
+                else
+                {
+                    existing.Position = new NpgsqlPoint(ledValue.X, ledValue.Y);
+                }
             }
             context.SaveChanges();
         }
