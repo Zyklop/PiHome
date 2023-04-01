@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using Communication.Networking;
+using Coordinator.Modules;
+using DataPersistance.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PiUi.Services;
-using Serilog;
 
 namespace PiUi
 {
@@ -24,13 +21,18 @@ namespace PiUi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
-	        services.AddSingleton<ILogger>(Log.Logger);
 	        services.AddHostedService<LoggingService>();
 	        services.AddHostedService<NetworkSupervisor>();
 	        services.AddHostedService<LanCommunicationService>();
             services.AddHostedService<PresetActivator>();
-            services.AddMvc(options => options.EnableEndpointRouting = false);
+            services.AddTransient<ModuleFactory>();
+            services.AddTransient<BroadcastConnector>();
+            services.AddTransient<MulticastConnector>();
+            services.AddTransient<LedController>();
+            services.AddTransient<PresetRepository>();
+            services.AddTransient<LogRepository>();
+            services.AddSingleton<MasterNetworker>();
+            services.AddMvc(options => options.EnableEndpointRouting = false).AddNewtonsoftJson();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,7 +46,7 @@ namespace PiUi
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
+            
             app.UseStaticFiles();
             app.UseMvc();
         }

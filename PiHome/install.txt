@@ -1,20 +1,20 @@
 sudo apt-get update
-sudo apt-get install pip3
+sudo apt-get install python3-pip
 sudo apt-get install pigpio
 sudo apt-get install postgresql
 sudo apt-get install libpq-dev
 sudo apt-get -y install libunwind8 gettext
 
-wget https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-rc1-008673/dotnet-sdk-2.1.300-rc1-008673-linux-arm.tar.gz
-wget https://dotnetcli.blob.core.windows.net/dotnet/aspnetcore/Runtime/2.1.0-rc1-final/aspnetcore-runtime-2.1.0-rc1-final-linux-arm.tar.gz
-sudo mkdir /opt/dotnet
-sudo tar -xvf dotnet-sdk-2.1.300-rc1-008673-linux-arm.tar.gz -C /opt/dotnet/
-sudo tar -xvf aspnetcore-runtime-2.1.0-rc1-final-linux-arm.tar.gz -C /opt/dotnet/
-sudo ln -s /opt/dotnet/dotnet /usr/local/bin
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel Current
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
+echo 'export PATH=$PATH:$HOME/.dotnet' >> ~/.bashrc
+source ~/.bashrc
 
 sudo su postgres
 createuser pi -P --interactive
 psql postgres
 CREATE DATABASE PiHome;
-ctrl d
-psql PiHome -f CreateScript.sql
+\i CreateScript.sql
+
+
+pip3 install -r requirements.txt

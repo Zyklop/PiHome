@@ -2,33 +2,38 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Coordinator.Modules;
+using Communication.ApiCommunication;
+using DataPersistance.Models;
+using DataPersistance.Modules;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace PiUi.Services
 {
 	public class LoggingService : IHostedService, IDisposable
 	{
-		private ExtendedModule mod;
+		private readonly ModuleFactory moduleFactory;
+		private readonly LogRepository logRepository;
 		private CancellationTokenSource canceller;
 		private ManualResetEvent stopDetector = new ManualResetEvent(false);
-		private ILogger logger;
+        private Module module;
+        private SensorCommunicator sensor;
 
-		public LoggingService(ILogger logger)
-		{
-			this.logger = logger;
-			var mc = new ModuleController(logger);
-			mod = mc.GetCurrentModule();
-			canceller = new CancellationTokenSource();
-		}
+        public LoggingService(ModuleFactory moduleFactory, LogRepository logRepository)
+        {
+            this.moduleFactory = moduleFactory;
+            this.logRepository = logRepository;
+            canceller = new CancellationTokenSource();
+        }
 		
 		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-			if (mod == null)
+                module = moduleFactory.GetCurrentModule();
+			if (module == null)
 			{
 				return;
 			}
+
+            sensor = new SensorCommunicator(module.Ip);
 			Task.Run(() => UpdataLogForever(canceller.Token));
 		}
 
@@ -38,9 +43,13 @@ namespace PiUi.Services
 			{
 				try
 				{
-					var logsToUpdate = mod.GetLogsToUpdate();
-					mod.AddLogs(logsToUpdate);
-					mod.CleanupLogs();
+					var logsToUpdate = logRepository.GetConfigurationsToUpdate(module.Id); var res = new Dictionary<int, double>();
+                    foreach (var logConfiguration in logsToUpdate)
+                    {
+                        res.Add(logConfiguration.Id, GetValue(logConfiguration.FeatureId));
+                    }
+                    logRepository.LogData(res);
+					logRepository.DeleteOldLogs(module.Id);
 				}
 				catch (Exception e)
 				{
@@ -52,6 +61,23 @@ namespace PiUi.Services
 
 			stopDetector.Set();
 		}
+
+        private double GetValue(int featureId)
+        {
+            switch (featureId)
+            {
+                case 1:
+                    return sensor.GetEnvironment().Temperature;
+                case 2:
+                    return sensor.GetEnvironment().Humidity;
+                case 3:
+                    return sensor.Analog(2);
+                case 4:
+                    return sensor.Analog(3);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
 
 		public async Task StopAsync(CancellationToken cancellationToken)
 		{

@@ -1,4 +1,4 @@
-﻿@model ModuleViewModel
+﻿@model ModulesViewModel
 
 @{
     ViewBag.Title = "Module Overview";
@@ -21,20 +21,20 @@
     {
         <tr>
             <td>
-                @Html.Label(module.Module.Name)
+                @Html.Label(module.Name)
             </td>
             <td>
                 @if (!module.IsLocal)
                 {
-                    <a href=@($"http://{module.Module.Ip}:5000")>Connect</a>
+                    <a href=@($"http://{module.Ip}:5000")>Connect</a>
                 }
                 else
                 {
-                    @Html.ActionLink("Edit", "Edit", new { module.Module.Id })
+                    @Html.ActionLink("Edit", "Edit", new { module.Id })
                 }
             </td>
             <td>
-                @Html.ActionLink("Detail", "Details", new {module.Module.Id})
+                @Html.ActionLink("Detail", "Details", new {module.Id})
             </td>
         </tr>
     }

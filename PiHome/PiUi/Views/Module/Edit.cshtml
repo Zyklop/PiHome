@@ -37,8 +37,8 @@
             {
             <td>
                 <input type="hidden" name="ModuleId" value="@Model.ModuleId" />
-                <input type="hidden" name="FeatureToRemove" value="@feature.Id" />
-                <label>@feature.Name</label>
+                <input type="hidden" name="FeatureToDelete" value="@feature.FeatureId" />
+                <label>@feature.FeatureName</label>
             </td>
                 <td>
                     <button type="submit">Remove</button>
@@ -62,8 +62,8 @@
             {
             <td>
                 <input type="hidden" name="ModuleId" value="@Model.ModuleId" />
-                <input type="hidden" name="FeatureToAdd" value="@feature.Id" />
-                <label>@feature.Name</label>
+                <input type="hidden" name="FeatureToAdd" value="@feature.FeatureId" />
+                <label>@feature.FeatureName</label>
             </td>
                 <td>
                     @Html.TextBoxFor(x => x.Interval)

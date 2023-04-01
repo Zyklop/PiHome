@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Coordinator.Modules;
 using DataPersistance.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PiUi.Models;
-using Serilog;
 
 namespace PiUi.Controllers
 {
@@ -15,12 +15,12 @@ namespace PiUi.Controllers
     public class TimingController : Controller
     {
         private LedController ledController;
-        private ILogger logger;
+        private ILogger<TimingController> logger;
 
-        public TimingController(ILogger logger)
+        public TimingController(LedController ledController, ILogger<TimingController> logger)
         {
+            this.ledController = ledController;
             this.logger = logger;
-            ledController = new LedController(logger);
         }
 
         [Route("")]
@@ -65,7 +65,5 @@ namespace PiUi.Controllers
 
             return RedirectToAction("Index");
         }
-
-
     }
 }

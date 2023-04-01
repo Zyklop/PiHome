@@ -28,7 +28,7 @@
         </td>
         <td>
             <div>
-                <label for="brightness">Brightness</label>
+                <label for="brightness">Brightnesss</label>
                 <input type="range" id="brightness" name="brightness"
                        min="0" max="100" value="100" onchange="setBrightness(this.value)">
             </div>
@@ -129,7 +129,7 @@
         ctx.clearRect(0, 0, w, h);
         for (var i = 0; i < leds.length; i++) {
             var led = leds[i];
-            ctx.fillStyle = 'rgb(' + led.color.r + ', ' + led.color.g + ', ' + led.color.b + ')';
+            ctx.fillStyle = 'rgb(' + led.r + ', ' + led.g + ', ' + led.b + ')';
             ctx.fillRect(led.x * scaleX, led.y * scaleY, 2, 2);
         }
         var circle = new Path2D();
@@ -195,10 +195,10 @@
             squaredDist += dy * dy;
             if (squaredDist < squaredRadius)
             {
-                led.color.Brightness = bright;
-                led.color.r = r;
-                led.color.g = g;
-                led.color.b = b;
+                led.Brightness = bright;
+                led.r = r;
+                led.g = g;
+                led.b = b;
             }
         }
     }
