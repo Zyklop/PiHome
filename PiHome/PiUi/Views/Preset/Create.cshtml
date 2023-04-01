@@ -56,7 +56,12 @@
         </td>
     </tr>
 </table>
-<canvas id="can" width="800" height="800"></canvas>
+<canvas id="can" width="700" height="1500"></canvas>
+<div style="display: none;">
+    <svg width="700" height="1500">
+        <image id="background" xlink:href="/images/background.svg" src="/images/background.png" width="700" height="1500" />
+    </svg>
+</div>
 <br />
 <input type="text" value="@Model.Name" oninput="setName(this.value)" />
 <input type="button" value="preview" id="preview" size="30" onclick="preview()">
@@ -84,20 +89,20 @@
         ctx = canvas.getContext("2d");
         w = canvas.width;
         h = canvas.height;
-        scaleX = w / @(Model.LedValues.Max(x => x.X) + 10);
-        scaleY = h / @(Model.LedValues.Max(x => x.Y) + 10);
+        scaleX = 0.965; //w / @(Model.LedValues.Max(x => x.X) + 10);
+        scaleY = 0.965; //h / @(Model.LedValues.Max(x => x.Y) + 10);
 
         canvas.addEventListener("mousemove", function (e) {
-            findxy('move', e)
+            findxy('move', e);
         }, false);
         canvas.addEventListener("mousedown", function (e) {
-            findxy('down', e)
+            findxy('down', e);
         }, false);
         canvas.addEventListener("mouseup", function (e) {
-            findxy('up', e)
+            findxy('up', e);
         }, false);
         canvas.addEventListener("mouseout", function (e) {
-            findxy('out', e)
+            findxy('out', e);
         }, false);
     }
 
@@ -126,7 +131,9 @@
     }
 
     function draw() {
+        var image = document.getElementById("background");
         ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(image, 0, 0);
         for (var i = 0; i < leds.length; i++) {
             var led = leds[i];
             ctx.fillStyle = 'rgb(' + led.r + ', ' + led.g + ', ' + led.b + ')';
@@ -166,8 +173,8 @@
     }
 
     function findxy(res, e) {
-        currX = e.clientX - canvas.offsetLeft;
-        currY = e.clientY - canvas.offsetTop;
+        currX = e.clientX - canvas.offsetLeft + window.scrollX;
+        currY = e.clientY - canvas.offsetTop + window.scrollY;
         if (res == 'down') {
 
             flag = true;
