@@ -66,19 +66,6 @@ namespace PiUi.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Route("GetAllPresets")]
-        [IgnoreAntiforgeryToken]
-        public ActionResult GetAllPresets()
-        {
-            return Json(ledController.GetAllPresets());
-        }
-
-        [HttpGet("Get/{name}")]
-        public ActionResult Get(string name)
-        {
-            return Json(ledController.GetPresetDto(name));
-        }
-
         [HttpPost("Save")]
         [IgnoreAntiforgeryToken]
         public ActionResult Save([FromBody] PresetViewModel collection)

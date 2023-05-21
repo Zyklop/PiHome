@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Communication.ApiCommunication;
-using Communication.Networking;
 using DataPersistance.Models;
 using DataPersistance.Modules;
 using Microsoft.Extensions.Logging;
@@ -14,13 +13,11 @@ namespace Coordinator.Modules
         private PresetRepository repo;
         private ModuleFactory mf;
         private ILogger<LedController> logger;
-        private MasterNetworker mn;
 
-        public LedController(ILogger<LedController> logger, ModuleFactory mf, MasterNetworker mn)
+        public LedController(ILogger<LedController> logger, ModuleFactory mf)
         {
             this.logger = logger;
             this.mf = mf;
-            this.mn = mn;
             repo = new PresetRepository();
         }
 
@@ -34,11 +31,6 @@ namespace Coordinator.Modules
             return repo.GetPreset(name);
         }
 
-        public PresetDto GetPresetDto(string name)
-        {
-            return repo.GetPresetDto(name);
-        }
-
         public string[] GetAllPresets()
         {
             return repo.GetAllPresets();
@@ -47,7 +39,6 @@ namespace Coordinator.Modules
         public void SavePreset(string name, IEnumerable<LedValue> leds)
         {
             repo.SavePreset(name, leds, DateTime.UtcNow);
-            mn.PresetChanges(name);
         }
 
         public void SavePreset(PresetDto preset)
@@ -58,7 +49,6 @@ namespace Coordinator.Modules
         public void DeletePreset(string name)
         {
             repo.DeletePreset(name);
-            mn.PresetDeleted(name);
         }
 
         public void Activate(string name)

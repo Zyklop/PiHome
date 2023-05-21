@@ -9,8 +9,6 @@ namespace DataPersistance.Modules
 {
     public class PresetRepository
     {
-        private ModuleFactory mf = new ModuleFactory();
-
         public PresetRepository()
         {
         }
@@ -45,22 +43,6 @@ namespace DataPersistance.Modules
                 },
                 Module = x.Led.Module
             }).AsEnumerable().GroupBy(x => x.Module).ToDictionary(x => x.Key, x => x.Select(y => y.Value).ToArray());
-        }
-
-        public PresetDto GetPresetDto(string name)
-        {
-            using var context = new PiHomeContext();
-            return context.LedPreset.AsNoTracking().Where(x => x.Name == name).Include(x => x.LedPresetValues).ThenInclude(x => x.Led).Select(x => new PresetDto
-            {
-                Name = x.Name,
-                LastChangeDate = x.ChangeDate,
-                LedValues = x.LedPresetValues.Select(y => new LedPresetDto
-                {
-                    ModuleName = y.Led.Module.Name,
-                    Led = new LedDto { X = y.Led.Position.X, Index = y.Led.Index, Y = y.Led.Position.Y },
-                    Color = new Color(y.Color)
-                }).ToArray()
-            }).SingleOrDefault();
         }
 
         public void UpdatePresetActivation(PresetActivation presetActivation, string presetName)
@@ -134,12 +116,6 @@ namespace DataPersistance.Modules
                 }
             }
             presetActivation.NextActivationTime = res;
-        }
-
-        public DateTime GetPresetChangeDate(string name)
-        {
-            using var context = new PiHomeContext();
-            return context.LedPreset.AsNoTracking().SingleOrDefault(x => x.Name == name)?.ChangeDate ?? DateTime.MinValue;
         }
 
         public string[] GetAllPresets()

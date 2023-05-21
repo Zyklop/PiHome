@@ -1,5 +1,4 @@
-﻿using Communication.Networking;
-using Coordinator.Modules;
+﻿using Coordinator.Modules;
 using DataPersistance.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,16 +21,11 @@ namespace PiUi
         public void ConfigureServices(IServiceCollection services)
         {
 	        services.AddHostedService<LoggingService>();
-	        services.AddHostedService<NetworkSupervisor>();
-	        services.AddHostedService<LanCommunicationService>();
             services.AddHostedService<PresetActivator>();
             services.AddTransient<ModuleFactory>();
-            services.AddTransient<BroadcastConnector>();
-            services.AddTransient<MulticastConnector>();
             services.AddTransient<LedController>();
             services.AddTransient<PresetRepository>();
             services.AddTransient<LogRepository>();
-            services.AddSingleton<MasterNetworker>();
             services.AddMvc(options => options.EnableEndpointRouting = false).AddNewtonsoftJson();
         }
 

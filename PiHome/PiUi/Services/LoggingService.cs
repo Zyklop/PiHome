@@ -27,14 +27,11 @@ namespace PiUi.Services
 		
 		public async Task StartAsync(CancellationToken cancellationToken)
 		{
-                module = moduleFactory.GetCurrentModule();
-			if (module == null)
-			{
-				return;
-			}
-
-            sensor = new SensorCommunicator(module.Ip);
-			Task.Run(() => UpdataLogForever(canceller.Token));
+            foreach (var module in moduleFactory.GetAllModules())
+            {
+                sensor = new SensorCommunicator(module.Ip);
+			    Task.Run(() => UpdataLogForever(canceller.Token));
+            }
 		}
 
 		public async Task UpdataLogForever(CancellationToken token)
