@@ -104,3 +104,31 @@
     </tr>
 </table>
 }
+
+<svg width="700" height="1500">
+    <image id="background" xlink:href="/images/background.svg" src="/images/background.png" width="700" height="1500" onclick="onClickImage(evt)"/>
+</svg>
+
+<script type="text/javascript">
+    setStart = true;
+    const img = document.getElementById("background");
+
+    function onClickImage(event) {
+        var bounds = img.getBoundingClientRect();
+        var x = event.pageX - bounds.left - window.scrollX - 10;
+        var y = event.pageY - bounds.top - window.scrollY;
+        if (setStart) {
+            var tbX = document.getElementById("StartX");
+            tbX.value = x;
+            var tbY = document.getElementById("StartY");
+            tbY.value = y;
+            setStart = false;
+        } else {
+            var tbX = document.getElementById("EndX");
+            tbX.value = x;
+            var tbY = document.getElementById("EndY");
+            tbY.value = y;
+            setStart = true;
+        }
+    }
+</script>
