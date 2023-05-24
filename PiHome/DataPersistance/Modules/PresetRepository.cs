@@ -9,13 +9,15 @@ namespace DataPersistance.Modules
 {
     public class PresetRepository
     {
-        public PresetRepository()
+        private readonly PiHomeContext context;
+
+        public PresetRepository(PiHomeContext context)
         {
+            this.context = context;
         }
 
         public List<LedValue> GetAllLeds()
         {
-            using var context = new PiHomeContext();
             return context.Led.AsNoTracking().Select(x => new LedValue
             {
                 Id = x.Id,
@@ -29,7 +31,6 @@ namespace DataPersistance.Modules
 
         public Dictionary<Module, LedValue[]> GetPreset(string name)
         {
-            using var context = new PiHomeContext();
             return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).Select(x => new
             {
                 Value = new LedValue
@@ -47,7 +48,6 @@ namespace DataPersistance.Modules
 
         public void UpdatePresetActivation(PresetActivation presetActivation, string presetName)
         {
-            using var context = new PiHomeContext();
             var preset = context.LedPreset.Single(x => x.Name == presetName);
             var activation = context.PresetActivation.SingleOrDefault(x => x.Id == presetActivation.Id);
             if (activation == null)
@@ -69,13 +69,11 @@ namespace DataPersistance.Modules
 
         public PresetActivation[] GetAllPresetActivations()
         {
-            using var context = new PiHomeContext();
             return context.PresetActivation.Include(x => x.Preset).AsNoTracking().ToArray();
         }
 
         public string GetPresetToActivate()
         {
-            using var context = new PiHomeContext();
             var pa = context.PresetActivation.Include(x => x.Preset)
                 .FirstOrDefault(x => x.NextActivationTime < DateTime.UtcNow);
             if (pa != null)
@@ -120,14 +118,12 @@ namespace DataPersistance.Modules
 
         public string[] GetAllPresets()
         {
-            using var context = new PiHomeContext();
             return context.LedPreset.AsNoTracking().Select(x => x.Name).ToArray();
         }
 
         public void SavePreset(string name, IEnumerable<LedValue> ledValues, DateTime changeDate)
         {
             var leds = ledValues.ToArray();
-            using var context = new PiHomeContext();
             var preset = context.LedPreset.Include(x => x.LedPresetValues).SingleOrDefault(x => x.Name == name);
             if (preset != null && changeDate < preset.ChangeDate)
             {
@@ -175,7 +171,6 @@ namespace DataPersistance.Modules
 
         public LedValue[] ToLedValues(IEnumerable<LedPresetDto> dtoValues)
         {
-            using var context = new PiHomeContext();
             var modules = context.Module.AsNoTracking().ToDictionary(x => x.Name, x => x.Id);
             var ledsFromDb = context.Led.AsTracking().GroupBy(x => x.ModuleId).ToDictionary(x => x.Key, x => x.ToDictionary(y => y.Index, y => y.Id));
             return dtoValues.Select(x =>
@@ -195,7 +190,6 @@ namespace DataPersistance.Modules
 
         public void DeletePreset(string name)
         {
-            using var context = new PiHomeContext();
             var preset = context.LedPreset.Single(x => x.Name == name);
             context.LedPreset.Remove(preset);
             context.SaveChanges();

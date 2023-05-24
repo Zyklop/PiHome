@@ -14,11 +14,11 @@ namespace Coordinator.Modules
         private ModuleFactory mf;
         private ILogger<LedController> logger;
 
-        public LedController(ILogger<LedController> logger, ModuleFactory mf)
+        public LedController(ILogger<LedController> logger, ModuleFactory mf, PresetRepository repo)
         {
             this.logger = logger;
             this.mf = mf;
-            repo = new PresetRepository();
+            this.repo = repo;
         }
 
         public List<LedValue> GetAllLeds()

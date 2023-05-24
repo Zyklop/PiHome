@@ -5,61 +5,65 @@ using System.Threading.Tasks;
 using Communication.ApiCommunication;
 using DataPersistance.Models;
 using DataPersistance.Modules;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace PiUi.Services
 {
-	public class LoggingService : IHostedService, IDisposable
-	{
-		private readonly ModuleFactory moduleFactory;
-		private readonly LogRepository logRepository;
-		private CancellationTokenSource canceller;
-		private ManualResetEvent stopDetector = new ManualResetEvent(false);
-        private Module module;
-        private SensorCommunicator sensor;
+    public class LoggingService : IHostedService, IDisposable
+    {
+        private readonly IServiceScopeFactory scopeFactory;
+        private CancellationTokenSource canceller;
+        private ManualResetEvent stopDetector = new ManualResetEvent(false);
 
-        public LoggingService(ModuleFactory moduleFactory, LogRepository logRepository)
+        public LoggingService(IServiceScopeFactory scopeFactory)
         {
-            this.moduleFactory = moduleFactory;
-            this.logRepository = logRepository;
+            this.scopeFactory = scopeFactory;
             canceller = new CancellationTokenSource();
         }
-		
-		public async Task StartAsync(CancellationToken cancellationToken)
-		{
-            foreach (var module in moduleFactory.GetAllModules())
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            Task.Run(() => UpdataLogForever(canceller.Token));
+        }
+
+        public async Task UpdataLogForever(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
             {
-                sensor = new SensorCommunicator(module.Ip);
-			    Task.Run(() => UpdataLogForever(canceller.Token));
-            }
-		}
-
-		public async Task UpdataLogForever(CancellationToken token)
-		{
-			while (!token.IsCancellationRequested)
-			{
-				try
-				{
-					var logsToUpdate = logRepository.GetConfigurationsToUpdate(module.Id); var res = new Dictionary<int, double>();
-                    foreach (var logConfiguration in logsToUpdate)
+                try
+                {
+                    await using (var scope = scopeFactory.CreateAsyncScope())
                     {
-                        res.Add(logConfiguration.Id, GetValue(logConfiguration.FeatureId));
+                        var logRepository = scope.ServiceProvider.GetService<LogRepository>();
+                        var moduleFactory = scope.ServiceProvider.GetService<ModuleFactory>();
+                        foreach (var module in moduleFactory.GetAllModules())
+                        {
+                            var logsToUpdate = logRepository.GetConfigurationsToUpdate(module.Id);
+                            var res = new Dictionary<int, double>();
+                            var sensor = new SensorCommunicator(module.Ip);
+                            foreach (var logConfiguration in logsToUpdate)
+                            {
+                                res.Add(logConfiguration.Id, GetValue(sensor, logConfiguration.FeatureId));
+                            }
+
+                            logRepository.LogData(res);
+                            logRepository.DeleteOldLogs(module.Id);
+                        }
                     }
-                    logRepository.LogData(res);
-					logRepository.DeleteOldLogs(module.Id);
-				}
-				catch (Exception e)
-				{
-					
-				}
+                }
+                catch (Exception e)
+                {
 
-				await Task.Delay(1000);
-			}
+                }
 
-			stopDetector.Set();
-		}
+                await Task.Delay(1000);
+            }
 
-        private double GetValue(int featureId)
+            stopDetector.Set();
+        }
+
+        private double GetValue(SensorCommunicator sensor, int featureId)
         {
             switch (featureId)
             {
@@ -76,15 +80,15 @@ namespace PiUi.Services
             }
         }
 
-		public async Task StopAsync(CancellationToken cancellationToken)
-		{
-			canceller.Cancel();
-		}
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            canceller.Cancel();
+        }
 
-		public void Dispose()
-		{
-			canceller.Cancel();
-			stopDetector.WaitOne();
-		}
-	}
+        public void Dispose()
+        {
+            canceller.Cancel();
+            stopDetector.WaitOne();
+        }
+    }
 }

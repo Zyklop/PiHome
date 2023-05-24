@@ -11,26 +11,26 @@ namespace DataPersistance.Modules
 {
     public class ModuleFactory
     {
-        public ModuleFactory()
+        private readonly PiHomeContext context;
+
+        public ModuleFactory(PiHomeContext context)
         {
+            this.context = context;
         }
 
         public List<Module> GetAllModules()
         {
-            using var context = new PiHomeContext();
             return context.Module.AsNoTracking().ToList();
         }
 
         public List<Feature> GetFeatures()
         {
-            using var context = new PiHomeContext();
             return context.Feature.AsNoTracking().ToList();
         }
 
         public void AddLedValues(IEnumerable<LedValue> values)
         {
             var leds = values.ToArray();
-            using var context = new PiHomeContext();
             foreach (var ledValue in leds)
             {
                 var existing =
@@ -54,7 +54,6 @@ namespace DataPersistance.Modules
 
         public Module UpsertModule(ModuleDto mod, IPAddress ip)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.SingleOrDefault(x => x.Name == mod.Name);
             var existingLeds = new Dictionary<int, Led>();
             if (module == null)
@@ -89,7 +88,6 @@ namespace DataPersistance.Modules
 
         public void AddFeature(int moduleId, int featureId, TimeSpan interval)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Single(x => x.Id == moduleId);
             module.FeatureIds = module.FeatureIds.Union(new[] { featureId }).ToArray();
             module.LogConfiguration.Add(new LogConfiguration
@@ -103,7 +101,6 @@ namespace DataPersistance.Modules
 
         public void UpdateIp(int moduleId, IPAddress moduleIp)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Single(x => x.Id == moduleId);
             module.Ip = moduleIp;
             context.SaveChanges();
@@ -111,7 +108,6 @@ namespace DataPersistance.Modules
 
         public void SetName(int id, string moduleName)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Single(x => x.Id == id);
             module.Name = moduleName;
             context.SaveChanges();
@@ -119,14 +115,12 @@ namespace DataPersistance.Modules
 
         public Module GetModule(int id)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Include(x => x.Led).AsNoTracking().Single(x => x.Id == id);
             return module;
         }
 
         public (string FeatureName, int FeatureId, int Value)[] GetAllValues(int moduleId)
         {
-            using var context = new PiHomeContext();
             return context.Log.AsNoTracking()
                 .Where(x => x.LogConfiguration.ModuleId == moduleId)
                 .OrderByDescending(x => x.Time)
@@ -140,13 +134,11 @@ namespace DataPersistance.Modules
 
         public Feature GetFeature(int featureId)
         {
-            using var context = new PiHomeContext();
             return context.Feature.AsNoTracking().Single(x => x.Id == featureId);
         }
 
         public void UpdateIp(string moduleName, IPAddress moduleIp)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Single(x => x.Name == moduleName);
             module.Ip = moduleIp;
             context.SaveChanges();
@@ -154,14 +146,12 @@ namespace DataPersistance.Modules
 
         public Module? GetModule(string moduleName)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Include(x => x.Led).AsNoTracking().SingleOrDefault(x => x.Name == moduleName);
             return module;
         }
 
         public void RemoveFeature(int moduleId, int featureId)
         {
-            using var context = new PiHomeContext();
             var module = context.Module.Include(x => x.LogConfiguration).Single(x => x.Id == moduleId);
             module.FeatureIds = module.FeatureIds.Except(new[] { featureId }).ToArray();
             var logConfig = module.LogConfiguration.Where(x => x.FeatureId == featureId);

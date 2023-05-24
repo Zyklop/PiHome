@@ -3,21 +3,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Coordinator.Modules;
 using DataPersistance.Modules;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace PiUi.Services
 {
     public class PresetActivator : IHostedService, IDisposable
     {
-        private PresetRepository repo;
-        private LedController lc;
+        private readonly IServiceScopeFactory scopeFactory;
         private CancellationTokenSource canceller;
         private ManualResetEvent stopDetector = new ManualResetEvent(false);
 
-        public PresetActivator(PresetRepository repo, LedController lc)
+        public PresetActivator(IServiceScopeFactory scopeFactory)
         {
-            this.repo = repo;
-            this.lc = lc;
+            this.scopeFactory = scopeFactory;
             canceller = new CancellationTokenSource();
         }
 
@@ -32,10 +31,13 @@ namespace PiUi.Services
             {
                 try
                 {
-                    var preset = repo.GetPresetToActivate();
-                    if (preset != null)
+                    await using(var scope = scopeFactory.CreateAsyncScope())
                     {
-                        lc.Activate(preset);
+                        var preset = scope.ServiceProvider.GetService<PresetRepository>().GetPresetToActivate();
+                        if (preset != null)
+                        {
+                            scope.ServiceProvider.GetService<LedController>().Activate(preset);
+                        }
                     }
                 }
                 catch (Exception e)
