@@ -46,7 +46,7 @@ namespace PiUi.Controllers
         {
             var model = new PresetViewModel
             {
-                LedValues = ledController.GetPreset(name).SelectMany(x => x.Value.Select(y => new LedValueViewModel(y))).ToArray(),
+                LedValues = ledController.GetPreset(name).SelectMany(x => x.Select(y => new LedValueViewModel(y))).ToArray(),
                 Name = name
             };
             return View(nameof(Create), model);

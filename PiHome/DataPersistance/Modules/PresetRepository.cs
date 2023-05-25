@@ -29,9 +29,12 @@ namespace DataPersistance.Modules
             }).ToList();
         }
 
-        public Dictionary<Module, LedValue[]> GetPreset(string name)
+        public ILookup<Module, LedValue> GetPreset(string name)
         {
-            return context.LedPreset.AsNoTracking().Where(x => x.Name == name).SelectMany(x => x.LedPresetValues).Select(x => new
+            return context.LedPreset.AsNoTracking()
+                .Where(x => x.Name == name)
+                .SelectMany(x => x.LedPresetValues)
+                .Select(x => new
             {
                 Value = new LedValue
                 {
@@ -43,7 +46,8 @@ namespace DataPersistance.Modules
                     Id = x.LedId
                 },
                 Module = x.Led.Module
-            }).AsEnumerable().GroupBy(x => x.Module).ToDictionary(x => x.Key, x => x.Select(y => y.Value).ToArray());
+            })
+                .ToLookup(x => x.Module, x => x.Value);
         }
 
         public void UpdatePresetActivation(PresetActivation presetActivation, string presetName)

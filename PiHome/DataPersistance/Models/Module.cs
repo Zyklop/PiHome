@@ -19,5 +19,19 @@ namespace DataPersistance.Models
 
         public ICollection<Led> Led { get; set; }
         public ICollection<LogConfiguration> LogConfiguration { get; set; }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Module other)
+            {
+                return other.Id == Id;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

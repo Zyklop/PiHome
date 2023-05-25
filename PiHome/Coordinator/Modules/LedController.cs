@@ -26,7 +26,7 @@ namespace Coordinator.Modules
             return repo.GetAllLeds();
         }
 
-        public Dictionary<Module, LedValue[]> GetPreset(string name)
+        public ILookup<Module, LedValue> GetPreset(string name)
         {
             return repo.GetPreset(name);
         }
@@ -60,17 +60,17 @@ namespace Coordinator.Modules
         public void Activate(IEnumerable<LedValue> ledValues)
         {
             var mods = mf.GetAllModules().ToDictionary(x => x.Id, x => x);
-            Activate(ledValues.GroupBy(x => x.ModuleId).ToDictionary(x => mods[x.Key], x => x.ToArray()));
+            Activate(ledValues.ToLookup(x => mods[x.ModuleId]));
         }
 
-        public void Activate(Dictionary<Module, LedValue[]> values)
+        public void Activate(ILookup<Module, LedValue> values)
         {
             foreach (var valuesForModule in values)
             {
                 var communicator = new LedCommunicator(valuesForModule.Key.Ip);
-                var maxIndex = valuesForModule.Value.Max(x => x.Index) + 1;
+                var maxIndex = valuesForModule.Max(x => x.Index) + 1;
                 var data = new byte[maxIndex * 4];
-                foreach (var ledValue in valuesForModule.Value)
+                foreach (var ledValue in valuesForModule)
                 {
                     Buffer.BlockCopy(ledValue.Color.ToRGBB(), 0, data, ledValue.Index * 4, 4);
                 }
