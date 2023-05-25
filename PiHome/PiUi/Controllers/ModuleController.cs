@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Coordinator.Modules;
 using DataPersistance.Models;
@@ -84,7 +85,8 @@ namespace PiUi.Controllers
                 ModuleId = module.Id,
                 CurrentFeatures = module.FeatureIds.Select(x => moduleFeatures[x]).ToArray(),
                 ModuleName = module.Name,
-                PossibleFeatures = moduleFeatures.Where(x => !module.FeatureIds.Contains(x.Key)).Select(x => x.Value).ToArray()
+                PossibleFeatures = moduleFeatures.Where(x => !module.FeatureIds.Contains(x.Key)).Select(x => x.Value).ToArray(),
+                Ip = module.Ip.ToString()
             };
             return vm;
         }
@@ -93,9 +95,40 @@ namespace PiUi.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, EditModuleViewModel model)
         {
+            if (!IPAddress.TryParse(model.Ip, out var ip))
+            {
+                return BadRequest("Invalid Ip");
+            }
             try
             {
-                moduleFactory.SetName(id, model.ModuleName);
+                moduleFactory.Update(id, model.ModuleName, ip);
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch
+            {
+                return View("Edit", model);
+            }
+        }
+
+        [HttpGet("Add")]
+        public ActionResult Add()
+        {
+            var vm = new EditModuleViewModel();
+            return View(vm);
+        }
+
+        [HttpPost("Add")]
+        [ValidateAntiForgeryToken]
+        public ActionResult Add(EditModuleViewModel model)
+        {
+            if (!IPAddress.TryParse(model.Ip, out var ip))
+            {
+                return BadRequest("Invalid Ip");
+            }
+            try
+            {
+                moduleFactory.Create(model.ModuleName, ip);
 
                 return RedirectToAction(nameof(Index));
             }

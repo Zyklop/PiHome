@@ -24,18 +24,14 @@
                 @Html.Label(module.Name)
             </td>
             <td>
-                @if (!module.IsLocal)
-                {
-                    <a href=@($"http://{module.Ip}:5000")>Connect</a>
-                }
-                else
-                {
-                    @Html.ActionLink("Edit", "Edit", new { module.Id })
-                }
+                @Html.ActionLink("Edit", "Edit", new { module.Id })
             </td>
             <td>
                 @Html.ActionLink("Detail", "Details", new {module.Id})
             </td>
         </tr>
     }
+    <tr>
+        <td>@Html.ActionLink("Add", "Add")</td>
+    </tr>
 </table>

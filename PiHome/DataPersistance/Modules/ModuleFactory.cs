@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using DataPersistance.Models;
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
@@ -52,40 +51,6 @@ namespace DataPersistance.Modules
             context.SaveChanges();
         }
 
-        public Module UpsertModule(ModuleDto mod, IPAddress ip)
-        {
-            var module = context.Module.SingleOrDefault(x => x.Name == mod.Name);
-            var existingLeds = new Dictionary<int, Led>();
-            if (module == null)
-            {
-                module = new Module
-                {
-                    Name = mod.Name,
-                    FeatureIds = mod.FeatureIds,
-                    Ip = ip
-                };
-                context.Add(module);
-            }
-            else
-            {
-                module.FeatureIds = mod.FeatureIds;
-                module.Ip = ip;
-                existingLeds = context.Led.Where(x => x.ModuleId == module.Id).ToDictionary(x => x.Index, x => x);
-            }
-            context.Led.RemoveRange(existingLeds.Where(x => mod.Leds.All(y => y.Index != x.Key)).Select(x => x.Value));
-            foreach (var ledValue in mod.Leds)
-            {
-                if (!existingLeds.TryGetValue(ledValue.Index, out var led))
-                {
-                    led = new Led { Index = ledValue.Index, Module = module };
-                    context.Led.Add(led);
-                }
-                led.Position = new NpgsqlPoint(ledValue.X, ledValue.Y);
-            }
-            context.SaveChanges();
-            return module;
-        }
-
         public void AddFeature(int moduleId, int featureId, TimeSpan interval)
         {
             var module = context.Module.Single(x => x.Id == moduleId);
@@ -103,13 +68,6 @@ namespace DataPersistance.Modules
         {
             var module = context.Module.Single(x => x.Id == moduleId);
             module.Ip = moduleIp;
-            context.SaveChanges();
-        }
-
-        public void SetName(int id, string moduleName)
-        {
-            var module = context.Module.Single(x => x.Id == id);
-            module.Name = moduleName;
             context.SaveChanges();
         }
 
@@ -137,19 +95,6 @@ namespace DataPersistance.Modules
             return context.Feature.AsNoTracking().Single(x => x.Id == featureId);
         }
 
-        public void UpdateIp(string moduleName, IPAddress moduleIp)
-        {
-            var module = context.Module.Single(x => x.Name == moduleName);
-            module.Ip = moduleIp;
-            context.SaveChanges();
-        }
-
-        public Module? GetModule(string moduleName)
-        {
-            var module = context.Module.Include(x => x.Led).AsNoTracking().SingleOrDefault(x => x.Name == moduleName);
-            return module;
-        }
-
         public void RemoveFeature(int moduleId, int featureId)
         {
             var module = context.Module.Include(x => x.LogConfiguration).Single(x => x.Id == moduleId);
@@ -159,6 +104,26 @@ namespace DataPersistance.Modules
             {
                 context.LogConfiguration.Remove(config);
             }
+            context.SaveChanges();
+        }
+
+        public void Update(int id, string moduleName, IPAddress address)
+        {
+            var module = context.Module.Single(x => x.Id == id);
+            module.Name = moduleName;
+            module.Ip = address;
+            context.SaveChanges();
+        }
+
+        public void Create(string moduleName, IPAddress address)
+        {
+            var module = new Module
+            {
+                Ip = address,
+                Name = moduleName,
+                FeatureIds = Array.Empty<int>()
+            };
+            context.Module.Add(module);
             context.SaveChanges();
         }
     }
