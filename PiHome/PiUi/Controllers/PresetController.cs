@@ -53,7 +53,7 @@ namespace PiUi.Controllers
                 var value = allLeds[i];
                 if (grouped.TryGetValue(value.Id, out var saved))
                 {
-                    values[i] = new LedValueViewModel(y);
+                    values[i] = new LedValueViewModel(saved);
                 }
                 else
                 {
