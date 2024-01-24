@@ -46,7 +46,7 @@ namespace PiUi.Controllers
         {
             var model = new PresetViewModel
             {
-                LedValues = ledController.GetPreset(name).SelectMany(x => x.Value.Select(y => new LedValueViewModel(y))).ToArray(),
+                LedValues = ledController.GetPreset(name).SelectMany(x => x.Select(y => new LedValueViewModel(y))).ToArray(),
                 Name = name
             };
             return View(nameof(Create), model);
@@ -64,19 +64,6 @@ namespace PiUi.Controllers
         {
             ledController.DeletePreset(name);
             return RedirectToAction(nameof(Index));
-        }
-
-        [Route("GetAllPresets")]
-        [IgnoreAntiforgeryToken]
-        public ActionResult GetAllPresets()
-        {
-            return Json(ledController.GetAllPresets());
-        }
-
-        [HttpGet("Get/{name}")]
-        public ActionResult Get(string name)
-        {
-            return Json(ledController.GetPresetDto(name));
         }
 
         [HttpPost("Save")]

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Communication.ApiCommunication;
-using Communication.Networking;
 using DataPersistance.Models;
 using DataPersistance.Modules;
 using Microsoft.Extensions.Logging;
@@ -14,14 +13,12 @@ namespace Coordinator.Modules
         private PresetRepository repo;
         private ModuleFactory mf;
         private ILogger<LedController> logger;
-        private MasterNetworker mn;
 
-        public LedController(ILogger<LedController> logger, ModuleFactory mf, MasterNetworker mn)
+        public LedController(ILogger<LedController> logger, ModuleFactory mf, PresetRepository repo)
         {
             this.logger = logger;
             this.mf = mf;
-            this.mn = mn;
-            repo = new PresetRepository();
+            this.repo = repo;
         }
 
         public List<LedValue> GetAllLeds()
@@ -29,14 +26,9 @@ namespace Coordinator.Modules
             return repo.GetAllLeds();
         }
 
-        public Dictionary<Module, LedValue[]> GetPreset(string name)
+        public ILookup<Module, LedValue> GetPreset(string name)
         {
             return repo.GetPreset(name);
-        }
-
-        public PresetDto GetPresetDto(string name)
-        {
-            return repo.GetPresetDto(name);
         }
 
         public string[] GetAllPresets()
@@ -47,7 +39,6 @@ namespace Coordinator.Modules
         public void SavePreset(string name, IEnumerable<LedValue> leds)
         {
             repo.SavePreset(name, leds, DateTime.UtcNow);
-            mn.PresetChanges(name);
         }
 
         public void SavePreset(PresetDto preset)
@@ -58,7 +49,6 @@ namespace Coordinator.Modules
         public void DeletePreset(string name)
         {
             repo.DeletePreset(name);
-            mn.PresetDeleted(name);
         }
 
         public void Activate(string name)
@@ -70,17 +60,17 @@ namespace Coordinator.Modules
         public void Activate(IEnumerable<LedValue> ledValues)
         {
             var mods = mf.GetAllModules().ToDictionary(x => x.Id, x => x);
-            Activate(ledValues.GroupBy(x => x.ModuleId).ToDictionary(x => mods[x.Key], x => x.ToArray()));
+            Activate(ledValues.ToLookup(x => mods[x.ModuleId]));
         }
 
-        public void Activate(Dictionary<Module, LedValue[]> values)
+        public void Activate(ILookup<Module, LedValue> values)
         {
             foreach (var valuesForModule in values)
             {
                 var communicator = new LedCommunicator(valuesForModule.Key.Ip);
-                var maxIndex = valuesForModule.Value.Max(x => x.Index) + 1;
+                var maxIndex = valuesForModule.Max(x => x.Index) + 1;
                 var data = new byte[maxIndex * 4];
-                foreach (var ledValue in valuesForModule.Value)
+                foreach (var ledValue in valuesForModule)
                 {
                     Buffer.BlockCopy(ledValue.Color.ToRGBB(), 0, data, ledValue.Index * 4, 4);
                 }
