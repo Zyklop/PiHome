@@ -5,11 +5,6 @@ sudo apt-get install postgresql
 sudo apt-get install libpq-dev
 sudo apt-get -y install libunwind8 gettext
 
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel Current
-echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
-echo 'export PATH=$PATH:$HOME/.dotnet' >> ~/.bashrc
-source ~/.bashrc
-
 sudo su postgres
 createuser pi -P --interactive
 psql postgres
@@ -18,3 +13,11 @@ CREATE DATABASE PiHome;
 
 
 pip3 install -r requirements.txt
+
+sudo systemctl enable pigpiod
+
+copy piapi.service to /etc/systemd/system/piapi.service
+
+sudo chmod 644 /etc/systemd/system/piapi.service
+sudo systemctl daemon-reload
+sudo systemctl enable piapi

@@ -16,9 +16,7 @@ Standalone Meshed Home Automation using Raspberry Pi
 3. Install and configure required software according to Install.txt
 4. Copy compiled binaries to the raspberry
 5. Install pip-packages according to requirements.txt
-6. Setup autostart according to Autostart.txt
-	1. Either setup a cronjob
-	2. Or use /etc/rc.local
+6. Setup autostart using systemd
 
 # Implemented Features
 * Preset creation
