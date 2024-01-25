@@ -37,16 +37,32 @@ namespace PiUi.Controllers
         [Route("Create")]
         public ActionResult Create()
         {
-            var model = new PresetViewModel { LedValues = ledController.GetAllLeds().Select(x => new LedValueViewModel(x)).ToArray(), Name = "Name" };
+            var model = new PresetViewModel { LedValues = ledController.GetAllLeds().Select(x => new LedValueViewModel(x) { Brightness = -1 }).ToArray(), Name = "Name" };
             return View(model);
         }
 
         [HttpGet("Edit/{name}")]
         public ActionResult Edit(string name)
         {
+            var preset = ledController.GetPreset(name);
+            var allLeds = ledController.GetAllLeds();
+            var values = new LedValueViewModel[allLeds.Count];
+            var grouped = preset.SelectMany(x => x).ToDictionary(x => x.Id, x => x);
+            for (var i = 0; i < allLeds.Count; i++)
+            {
+                var value = allLeds[i];
+                if (grouped.TryGetValue(value.Id, out var saved))
+                {
+                    values[i] = new LedValueViewModel(saved);
+                }
+                else
+                {
+                    values[i] = new LedValueViewModel(value) { Brightness = -1 };
+                }
+            }
             var model = new PresetViewModel
             {
-                LedValues = ledController.GetPreset(name).SelectMany(x => x.Select(y => new LedValueViewModel(y))).ToArray(),
+                LedValues = values,
                 Name = name
             };
             return View(nameof(Create), model);
@@ -94,6 +110,10 @@ namespace PiUi.Controllers
             var ledsById = ledController.GetAllLeds().ToDictionary(x => x.Id, x => x);
             foreach (var model in values)
             {
+                if (model.Brightness < 0)
+                {
+                    continue;
+                }
                 var fromDb = ledsById[model.Id];
                 yield return new LedValue()
                 {

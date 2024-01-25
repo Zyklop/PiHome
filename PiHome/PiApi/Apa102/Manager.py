@@ -44,9 +44,9 @@ class Manager(object):
         self.check()
         for led in range(self.NumLeds):
             if led < len(data) / 4:
-                self.strip.set_pixel(led, data[led * 4], data[led * 4 + 1], data[led * 4 + 2], data[led * 4 + 3])
-            else:
-                self.strip.set_pixel(led, 0, 0, 0)
+                bright = data[led * 4 + 3]
+                if bright <= 100:
+                    self.strip.set_pixel(led, data[led * 4], data[led * 4 + 1], data[led * 4 + 2], bright)
         self.strip.show()
 
     def SetSolidAndRender(self, r, g, b, bright_percent=100):
