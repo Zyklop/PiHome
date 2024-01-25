@@ -199,6 +199,24 @@ CREATE TABLE public."PresetActivation"
 ALTER TABLE public."PresetActivation"
     OWNER to writer;
 
+CREATE TABLE public."ButtonMapping"
+(
+    "ButtonId" integer NOT NULL,
+    "ActionId" integer NOT NULL,
+    "PresetId" integer NOT NULL,
+    "Description" character varying(100) COLLATE pg_catalog."default",
+    "LastActivation" timestamp(4) without time zone,
+    CONSTRAINT "PK_ButtonMapping" PRIMARY KEY ("ButtonId", "ActionId"),
+    CONSTRAINT "FK_ButtonMapping-Preset" FOREIGN KEY ("PresetId")
+        REFERENCES public."LedPreset" ("Id") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+        NOT VALID
+)
+
+ALTER TABLE public."ButtonMapping"
+    OWNER to "writer";
+
 INSERT INTO public."Feature"(
 	"Id", "Name", "Unit", "LogFactor")
 	VALUES (1, 'Temperature', '°C', 100.0);
