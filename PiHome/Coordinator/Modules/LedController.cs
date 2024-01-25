@@ -10,6 +10,8 @@ namespace Coordinator.Modules
 {
     public class LedController
     {
+        private static readonly byte[] IgnoreData = new byte[] { 0, 0, 0, 101 };
+
         private PresetRepository repo;
         private ModuleFactory mf;
         private ILogger<LedController> logger;
@@ -69,12 +71,22 @@ namespace Coordinator.Modules
             {
                 var communicator = new LedCommunicator(valuesForModule.Key.Ip);
                 var maxIndex = valuesForModule.Max(x => x.Index) + 1;
-                var data = new byte[maxIndex * 4];
-                foreach (var ledValue in valuesForModule)
+                var valueLookup = valuesForModule.ToDictionary(x => x.Index, x => x.Color);
+                var arr = new byte[maxIndex * 4];
+                var data = arr.AsSpan();
+                for (int i = 0; i < maxIndex; i++)
                 {
-                    Buffer.BlockCopy(ledValue.Color.ToRGBB(), 0, data, ledValue.Index * 4, 4);
+                    if(valueLookup.TryGetValue(i, out var value))
+                    {
+                        value.ToRGBB().AsSpan().CopyTo(data);
+                    }
+                    else
+                    {
+                        IgnoreData.AsSpan().CopyTo(data);
+                    }
+                    data = data.Slice(4);
                 }
-                communicator.SetRGBB(data);
+                communicator.SetRGBB(arr);
             }
         }
 
