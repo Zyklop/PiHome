@@ -57,9 +57,9 @@ namespace PiUi.Controllers
             var pa = new PresetActivation
             {
                 Id = model.Id,
-                ActivationTime = model.ActivationTime,
-                Active = new BitArray(new [] {model.Active}),
-                DaysOfWeek = new BitArray(new [] {model.Sunday, model.Monday, model.Tuesday, model.Wednesday, model.Thursday, model.Friday, model.Saturday})
+                ActivationTime = new TimeOnly(model.ActivationTime.Ticks),
+                Active = model.Active,
+                DaysOfWeek = new [] {model.Sunday, model.Monday, model.Tuesday, model.Wednesday, model.Thursday, model.Friday, model.Saturday}
             };
             ledController.SavePresetActivation(pa, model.SelectedPreset);
 

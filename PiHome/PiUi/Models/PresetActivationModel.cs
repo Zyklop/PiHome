@@ -8,10 +8,10 @@ namespace PiUi.Models
         public PresetActivationModel(PresetActivation x, string[] allPresets)
         {
             Id = x.Id;
-            ActivationTime = x.ActivationTime;
+            ActivationTime = x.ActivationTime.ToTimeSpan();
             AllPresets = allPresets;
             SelectedPreset = x.Preset.Name;
-            Active = x.Active[0];
+            Active = x.Active;
             Sunday = x.DaysOfWeek[(int) DayOfWeek.Sunday];
             Monday = x.DaysOfWeek[(int)DayOfWeek.Monday];
             Tuesday = x.DaysOfWeek[(int)DayOfWeek.Thursday];

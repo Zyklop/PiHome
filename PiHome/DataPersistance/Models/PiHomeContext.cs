@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DataPersistance.Models
 {
@@ -188,10 +189,6 @@ namespace DataPersistance.Models
             modelBuilder.Entity<PresetActivation>(entity =>
             {
                 entity.ToTable("PresetActivation");
-
-                entity.Property(e => e.Active).HasColumnType("bit(1)");
-
-                entity.Property(e => e.DaysOfWeek).HasColumnType("bit(7)[]");
 
                 entity.Property(e => e.NextActivationTime).HasColumnType("timestamp without time zone");
 

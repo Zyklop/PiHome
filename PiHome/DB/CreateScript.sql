@@ -186,8 +186,8 @@ CREATE TABLE public."PresetActivation"
     "Id" serial NOT NULL,
     "PresetId" integer NOT NULL,
     "ActivationTime" time without time zone NOT NULL,
-    "DaysOfWeek" bit (7)[] NOT NULL,
-    "Active" bit NOT NULL,
+    "DaysOfWeek" boolean[] NOT NULL,
+    "Active" boolean NOT NULL,
     "NextActivationTime" timestamp without time zone NOT NULL,
     CONSTRAINT "PK_PresetActivation" PRIMARY KEY ("Id"),
     CONSTRAINT "FK_PresetActivation" FOREIGN KEY ("PresetId")
