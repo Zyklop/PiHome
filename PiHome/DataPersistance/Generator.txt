@@ -1,1 +1,1 @@
-﻿dotnet ef dbcontext scaffold "Host=localhost;Database=PiHome;Username=writer;Password=PiWriter" Npgsql.EntityFrameworkCore.PostgreSQL -o Models -f --project DataPersistance --startup-project PiUi
+﻿Scaffold-DbContext -Connection "Host=192.168.50.6;Database=PiHome;Username=pi-home;Password=FbstPtwECputDaQicj3J" -Provider "Npgsql.EntityFrameworkCore.PostgreSQL" -OutputDir Models -Force -Project DataPersistance -StartupProject DataPersistance
