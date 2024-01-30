@@ -1,0 +1,91 @@
+﻿@model ButtonOverviewViewModel
+
+@{
+    ViewBag.Title = "Buttons";
+    Layout = "_Layout";
+}
+
+<h2>Buttons</h2>
+<table>
+    <tr>
+        <td>Name</td>
+        <td>Is On</td>
+        <td>Toggle Group</td>
+        <td></td>
+        <td>Delete</td>
+    </tr>
+    @foreach(var button in Model.Buttons)
+    {
+        using (Html.BeginForm("Edit", "Button", FormMethod.Post))
+        {
+            @Html.HiddenFor(x => button.Id)
+            <tr>
+                <td>@Html.TextBoxFor(x => button.Name)</td>
+                <td>@Html.TextBoxFor(x => button.ToggleGroup)</td>
+                <td>@button.IsOn</td>
+                <td>
+                    <button type="submit">Save</button>
+                </td>
+            </tr>
+        }
+        <td>@Html.ActionLink("Delete", "Delete", "Button", new {Id = button.Id})</td>
+    }
+    
+    @using (Html.BeginForm("Add", "Button", FormMethod.Post))
+    {
+        <tr>
+            <td>@Html.TextBox(nameof(ButtonViewModel.Name))</td>
+            <td>@Html.TextBox(nameof(ButtonViewModel.ToggleGroup))</td>
+            <td></td>
+            <td>
+                <button type="submit">Add</button>
+            </td>
+        </tr>
+    }
+</table>
+
+<h2>Actions</h2>
+<table>
+    <tr>
+        <td>Button</td>
+        <td>Action</td>
+        <td>On Action</td>
+        <td>Off Action</td>
+        <td>Description</td>
+        <td>Save</td>
+        <td>Delete</td>
+    </tr>
+    @foreach (var action in Model.Actions)
+    {
+        <tr>
+            @using (Html.BeginForm("EditAction", "Button", FormMethod.Post))
+            {
+                <td>
+                    @Html.HiddenFor(x => action.ButtonId)
+                    <label>@Model.Buttons.FirstOrDefault(x => x.Id == action.ButtonId)?.Name</label>
+                </td>
+                <td>@Html.TextBoxFor(x => action.Action)</td>
+                <td>@Html.DropDownListFor(x => action.OnPresetId, Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), x.Value==action.OnPresetId)))</td>
+                <td>@Html.DropDownListFor(x => action.OffPresetId, Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), x.Value==action.OffPresetId)))</td>
+                <td>@Html.TextBoxFor(x => action.Description)</td>
+                <td>
+                    <button type="submit">Update</button>
+                </td>
+            }
+            <td>@Html.ActionLink("Delete", "DeleteAction", "Button", new {ButtonId = action.ButtonId, ActionId = action.Action})</td>
+        </tr>
+    }
+    <tr>
+        @using (Html.BeginForm("AddAction", "Button", FormMethod.Post))
+        {
+            <td>@Html.DropDownList(nameof(ButtonActionViewModel.ButtonId), Model.Buttons.Select(x => new SelectListItem(x.Name, x.Id.ToString(), false)))</td>
+            <td>@Html.TextBox(nameof(ButtonActionViewModel.Action))</td>
+            <td>@Html.DropDownList(nameof(ButtonActionViewModel.OnPresetId), Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), false)))</td>
+            <td>@Html.DropDownList(nameof(ButtonActionViewModel.OffPresetId), Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), false)))</td>
+            <td>@Html.TextBox(nameof(ButtonActionViewModel.Description))</td>
+            <td>
+                <button type="submit">Save</button>
+            </td>
+        }
+    </tr>
+</table>
