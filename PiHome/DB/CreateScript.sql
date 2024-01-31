@@ -186,8 +186,8 @@ CREATE TABLE public."PresetActivation"
     "Id" serial NOT NULL,
     "PresetId" integer NOT NULL,
     "ActivationTime" time without time zone NOT NULL,
-    "DaysOfWeek" bit (7)[] NOT NULL,
-    "Active" bit NOT NULL,
+    "DaysOfWeek" boolean[] NOT NULL,
+    "Active" boolean NOT NULL,
     "NextActivationTime" timestamp without time zone NOT NULL,
     CONSTRAINT "PK_PresetActivation" PRIMARY KEY ("Id"),
     CONSTRAINT "FK_PresetActivation" FOREIGN KEY ("PresetId")
@@ -198,6 +198,52 @@ CREATE TABLE public."PresetActivation"
 
 ALTER TABLE public."PresetActivation"
     OWNER to writer;
+
+CREATE TABLE public."Button"
+(
+    "Id" integer NOT NULL,
+    "Name" character varying(20) COLLATE pg_catalog."default",
+    "Toggled" boolean NOT NULL,
+    "ToggleGroup" integer NOT NULL,
+    "LastActivation" timestamp(0) without time zone,
+    CONSTRAINT "Button_pkey" PRIMARY KEY ("Id")
+)
+
+ALTER TABLE public."Button"
+    OWNER to "writer";
+
+CREATE INDEX "Button_ToggleGroup"
+    ON public."Button" USING btree
+    ("ToggleGroup")
+    TABLESPACE pg_default;
+
+CREATE TABLE public."ButtonMapping"
+(
+    "ButtonId" integer NOT NULL,
+    "ActionId" integer NOT NULL,
+    "ToggleOnPresetId" integer,
+    "ToggleOffPresetId" integer,
+    "Description" character varying(20) COLLATE pg_catalog."default",
+    CONSTRAINT "PK_ButtonMapping" PRIMARY KEY ("ButtonId", "ActionId"),
+    CONSTRAINT "FK_ButtonMapping-Button" FOREIGN KEY ("ButtonId")
+        REFERENCES public."Button" ("Id") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+        NOT VALID,
+    CONSTRAINT "FK_ButtonMapping-PresetOff" FOREIGN KEY ("ToggleOffPresetId")
+        REFERENCES public."LedPreset" ("Id") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE SET NULL
+        NOT VALID,
+    CONSTRAINT "FK_ButtonMapping-PresetOn" FOREIGN KEY ("ToggleOnPresetId")
+        REFERENCES public."LedPreset" ("Id") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE SET NULL
+        NOT VALID
+)
+
+ALTER TABLE public."ButtonMapping"
+    OWNER to "writer";
 
 INSERT INTO public."Feature"(
 	"Id", "Name", "Unit", "LogFactor")

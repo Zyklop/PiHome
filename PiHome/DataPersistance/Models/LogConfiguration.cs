@@ -7,7 +7,7 @@ namespace DataPersistance.Models
     {
         public LogConfiguration()
         {
-            Log = new HashSet<Log>();
+            Logs = new HashSet<Log>();
         }
 
         public int ModuleId { get; set; }
@@ -17,21 +17,8 @@ namespace DataPersistance.Models
         public int Id { get; set; }
         public TimeSpan? RetensionTime { get; set; }
 
-        public Feature Feature { get; set; }
-        public Module Module { get; set; }
-        public ICollection<Log> Log { get; set; }
-        public override bool Equals(object? obj)
-        {
-            if (obj is Module other)
-            {
-                return other.Id == Id;
-            }
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+        public virtual Feature Feature { get; set; } = null!;
+        public virtual Module Module { get; set; } = null!;
+        public virtual ICollection<Log> Logs { get; set; }
     }
 }

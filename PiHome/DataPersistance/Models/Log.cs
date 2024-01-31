@@ -10,19 +10,6 @@ namespace DataPersistance.Models
         public long Id { get; set; }
         public int LogConfigurationId { get; set; }
 
-        public LogConfiguration LogConfiguration { get; set; }
-        public override bool Equals(object? obj)
-        {
-            if (obj is Module other)
-            {
-                return other.Id == Id;
-            }
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+        public virtual LogConfiguration LogConfiguration { get; set; } = null!;
     }
 }

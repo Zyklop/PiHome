@@ -7,27 +7,14 @@ namespace DataPersistance.Models
     {
         public Feature()
         {
-            LogConfiguration = new HashSet<LogConfiguration>();
+            LogConfigurations = new HashSet<LogConfiguration>();
         }
 
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Unit { get; set; }
+        public string Name { get; set; } = null!;
+        public string Unit { get; set; } = null!;
         public double LogFactor { get; set; }
 
-        public ICollection<LogConfiguration> LogConfiguration { get; set; }
-        public override bool Equals(object? obj)
-        {
-            if (obj is Module other)
-            {
-                return other.Id == Id;
-            }
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+        public virtual ICollection<LogConfiguration> LogConfigurations { get; set; }
     }
 }

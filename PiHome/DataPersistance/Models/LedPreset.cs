@@ -7,28 +7,14 @@ namespace DataPersistance.Models
     {
         public LedPreset()
         {
-            LedPresetValues = new HashSet<LedPresetValues>();
-            PresetActivation = new HashSet<PresetActivation>();
+            LedPresetValues = new HashSet<LedPresetValue>();
+            PresetActivations = new HashSet<PresetActivation>();
         }
 
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public DateTime ChangeDate { get; set; }
-
-        public ICollection<LedPresetValues> LedPresetValues { get; set; }
-        public ICollection<PresetActivation> PresetActivation { get; set; }
-        public override bool Equals(object? obj)
-        {
-            if (obj is Module other)
-            {
-                return other.Id == Id;
-            }
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+        public virtual ICollection<LedPresetValue> LedPresetValues { get; set; }
+        public virtual ICollection<PresetActivation> PresetActivations { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace DataPersistance.Models
     {
         public Led()
         {
-            LedPresetValues = new HashSet<LedPresetValues>();
+            LedPresetValues = new HashSet<LedPresetValue>();
         }
 
         public int Index { get; set; }
@@ -16,20 +16,7 @@ namespace DataPersistance.Models
         public NpgsqlPoint Position { get; set; }
         public int Id { get; set; }
 
-        public Module Module { get; set; }
-        public ICollection<LedPresetValues> LedPresetValues { get; set; }
-        public override bool Equals(object? obj)
-        {
-            if (obj is Module other)
-            {
-                return other.Id == Id;
-            }
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+        public virtual Module Module { get; set; } = null!;
+        public virtual ICollection<LedPresetValue> LedPresetValues { get; set; }
     }
 }
