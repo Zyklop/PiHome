@@ -5,7 +5,7 @@ namespace PiUi.Models;
 public class ButtonOverviewViewModel
 {
     public ButtonViewModel[] Buttons { get; set; }
-    public Dictionary<string, int> Presets { get; set; }
+    public Dictionary<int, string> Presets { get; set; }
     public ButtonActionViewModel[] Actions { get; set; }
 }
 
@@ -21,7 +21,7 @@ public class ButtonActionViewModel
 {
     public int ButtonId { get; set; }
     public int Action { get; set; }
-    public int OnPresetId { get; set; }
-    public int OffPresetId { get; set; }
+    public int? OnPresetId { get; set; }
+    public int? OffPresetId { get; set; }
     public string Description { get; set; }
 }

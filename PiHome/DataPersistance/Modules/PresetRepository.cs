@@ -119,9 +119,9 @@ namespace DataPersistance.Modules
             presetActivation.NextActivationTime = res;
         }
 
-        public string[] GetAllPresets()
+        public Dictionary<int, string> GetAllPresets()
         {
-            return context.LedPresets.AsNoTracking().Select(x => x.Name).ToArray();
+            return context.LedPresets.AsNoTracking().ToDictionary(x => x.Id, x => x.Name);
         }
 
         public void SavePreset(string name, IEnumerable<LedValue> ledValues, DateTime changeDate)

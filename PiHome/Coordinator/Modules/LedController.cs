@@ -33,7 +33,7 @@ namespace Coordinator.Modules
             return repo.GetPreset(name);
         }
 
-        public string[] GetAllPresets()
+        public Dictionary<int, string> GetAllPresets()
         {
             return repo.GetAllPresets();
         }

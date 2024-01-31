@@ -37,7 +37,7 @@ namespace PiUi.Controllers
         public ActionResult Create()
         {
             var presets = ledController.GetAllPresets();
-            var model = new PresetActivationModel(){AllPresets = presets.ToArray(), Active = true};
+            var model = new PresetActivationModel(){AllPresets = presets.Values.ToArray(), Active = true};
             return View(model);
         }
 
@@ -46,7 +46,7 @@ namespace PiUi.Controllers
         {
             var presets = ledController.GetAllPresets();
             var activation = ledController.GetAllActivations().Single(x => x.Id == id);
-            var model = new PresetActivationModel(activation, presets.ToArray());
+            var model = new PresetActivationModel(activation, presets.Values.ToArray());
             return View(nameof(Create), model);
         }
 

@@ -29,7 +29,7 @@ namespace PiUi.Controllers
         {
             var presetModel = new PresetOverview
             {
-                Presets = ledController.GetAllPresets()
+                Presets = ledController.GetAllPresets().Values.ToArray()
             };
             return View(presetModel);
         }

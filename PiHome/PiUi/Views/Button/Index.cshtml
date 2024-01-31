@@ -28,7 +28,7 @@
                 </td>
             </tr>
         }
-        <td>@Html.ActionLink("Delete", "Delete", "Button", new {Id = button.Id})</td>
+        <td>@Html.ActionLink("Delete", "Delete", "Button", new {id = button.Id})</td>
     }
     
     @using (Html.BeginForm("Add", "Button", FormMethod.Post))
@@ -54,6 +54,7 @@
         <td>Description</td>
         <td>Save</td>
         <td>Delete</td>
+        <td>Test</td>
     </tr>
     @foreach (var action in Model.Actions)
     {
@@ -64,15 +65,16 @@
                     @Html.HiddenFor(x => action.ButtonId)
                     <label>@Model.Buttons.FirstOrDefault(x => x.Id == action.ButtonId)?.Name</label>
                 </td>
-                <td>@Html.TextBoxFor(x => action.Action)</td>
-                <td>@Html.DropDownListFor(x => action.OnPresetId, Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), x.Value==action.OnPresetId)))</td>
-                <td>@Html.DropDownListFor(x => action.OffPresetId, Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), x.Value==action.OffPresetId)))</td>
+                <td><label>@action.Action</label></td>
+                <td>@Html.DropDownListFor(x => action.OnPresetId, Model.Presets.Select(x => new SelectListItem(x.Value, x.Key.ToString(), x.Key==action.OnPresetId)))</td>
+                <td>@Html.DropDownListFor(x => action.OffPresetId, Model.Presets.Select(x => new SelectListItem(x.Value, x.Key.ToString(), x.Key==action.OffPresetId)))</td>
                 <td>@Html.TextBoxFor(x => action.Description)</td>
                 <td>
                     <button type="submit">Update</button>
                 </td>
             }
-            <td>@Html.ActionLink("Delete", "DeleteAction", "Button", new {ButtonId = action.ButtonId, ActionId = action.Action})</td>
+            <td>@Html.ActionLink("Delete", "DeleteAction", "Button", new {buttonId = action.ButtonId, actionId = action.Action})</td>
+            <td>@Html.ActionLink("Test", "TriggerAction", "Button", new {buttonId = action.ButtonId, actionId = action.Action})</td>
         </tr>
     }
     <tr>
@@ -80,8 +82,8 @@
         {
             <td>@Html.DropDownList(nameof(ButtonActionViewModel.ButtonId), Model.Buttons.Select(x => new SelectListItem(x.Name, x.Id.ToString(), false)))</td>
             <td>@Html.TextBox(nameof(ButtonActionViewModel.Action))</td>
-            <td>@Html.DropDownList(nameof(ButtonActionViewModel.OnPresetId), Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), false)))</td>
-            <td>@Html.DropDownList(nameof(ButtonActionViewModel.OffPresetId), Model.Presets.Select(x => new SelectListItem(x.Key, x.Value.ToString(), false)))</td>
+            <td>@Html.DropDownList(nameof(ButtonActionViewModel.OnPresetId), Model.Presets.Select(x => new SelectListItem(x.Value, x.Key.ToString(), false)))</td>
+            <td>@Html.DropDownList(nameof(ButtonActionViewModel.OffPresetId), Model.Presets.Select(x => new SelectListItem(x.Value, x.Key.ToString(), false)))</td>
             <td>@Html.TextBox(nameof(ButtonActionViewModel.Description))</td>
             <td>
                 <button type="submit">Save</button>
