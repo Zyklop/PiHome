@@ -177,9 +177,6 @@ namespace DataPersistance.Models
             {
                 entity.ToTable("Module");
 
-                entity.HasIndex(e => e.Ip, "UC_Ip")
-                    .IsUnique();
-
                 entity.HasIndex(e => e.Name, "UC_Module_Name")
                     .IsUnique();
 

@@ -90,7 +90,8 @@ public class ButtonRepository
         {
             button.Toggled = toggledNew;
         }
-        mapping.Button.LastActivation = DateTime.UtcNow;
+        mapping.Button.LastActivation = DateTime.Now;
+        context.SaveChanges();
 
         return presetName;
     }

@@ -79,7 +79,7 @@ namespace DataPersistance.Modules
         public string GetPresetToActivate()
         {
             var pa = context.PresetActivations.Include(x => x.Preset)
-                .FirstOrDefault(x => x.NextActivationTime < DateTime.UtcNow);
+                .FirstOrDefault(x => x.NextActivationTime < DateTime.Now);
             if (pa != null)
             {
                 CalculateNextActivation(ref pa);

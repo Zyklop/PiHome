@@ -93,7 +93,7 @@ namespace DataPersistance.Modules
 
         public List<LogConfiguration> GetConfigurationsToUpdate(int moduleId)
         {
-            return context.LogConfigurations.Where(x => x.ModuleId == moduleId && x.NextPoll < DateTime.UtcNow)
+            return context.LogConfigurations.Where(x => x.ModuleId == moduleId && x.NextPoll < DateTime.Now)
                 .AsNoTracking().ToList();
         }
 

@@ -76,6 +76,7 @@ namespace PiUi.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost("Action/Add")]
         [HttpPost("{buttonId}/Action/Add")]
         [ValidateAntiForgeryToken]
         public ActionResult AddAction(int buttonId, ButtonActionViewModel model)
