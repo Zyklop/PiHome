@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using Coordinator.Modules;
-using DataPersistance.Models;
 using DataPersistance.Modules;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using PiUi.Models;
 
 namespace PiUi.Controllers

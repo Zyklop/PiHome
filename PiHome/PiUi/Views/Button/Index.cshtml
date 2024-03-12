@@ -9,26 +9,26 @@
 <table>
     <tr>
         <td>Name</td>
-        <td>Is On</td>
         <td>Toggle Group</td>
+        <td>Is On</td>
         <td></td>
         <td>Delete</td>
     </tr>
     @foreach(var button in Model.Buttons)
     {
-        using (Html.BeginForm("Edit", "Button", FormMethod.Post))
+        <tr>
+        @using (Html.BeginForm("Edit", "Button", FormMethod.Post))
         {
             @Html.HiddenFor(x => button.Id)
-            <tr>
                 <td>@Html.TextBoxFor(x => button.Name)</td>
                 <td>@Html.TextBoxFor(x => button.ToggleGroup)</td>
                 <td>@button.IsOn</td>
                 <td>
                     <button type="submit">Save</button>
                 </td>
-            </tr>
         }
-        <td>@Html.ActionLink("Delete", "Delete", "Button", new {id = button.Id})</td>
+            <td>@Html.ActionLink("Delete", "Delete", "Button", new { id = button.Id })</td>
+        </tr>
     }
     
     @using (Html.BeginForm("Add", "Button", FormMethod.Post))
@@ -59,7 +59,7 @@
     @foreach (var action in Model.Actions)
     {
         <tr>
-            @using (Html.BeginForm("EditAction", "Button", FormMethod.Post))
+            @using (Html.BeginForm("EditAction", "Button", new {buttonId = action.ButtonId, actionId = action.Action}, FormMethod.Post))
             {
                 <td>
                     @Html.HiddenFor(x => action.ButtonId)
