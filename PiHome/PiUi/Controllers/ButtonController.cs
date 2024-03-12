@@ -65,7 +65,6 @@ namespace PiUi.Controllers
         }
 
         [HttpGet("{id}/Delete")]
-        [ValidateAntiForgeryToken]
         public ActionResult Delete(int id)
         {
             repo.DeleteButton(id);
@@ -90,7 +89,6 @@ namespace PiUi.Controllers
         }
 
         [HttpGet("{buttonId}/Action/{actionId}/Delete")]
-        [ValidateAntiForgeryToken]
         public ActionResult DeleteAction(int buttonId, int actionId)
         {
             repo.DeleteAction(buttonId, actionId);

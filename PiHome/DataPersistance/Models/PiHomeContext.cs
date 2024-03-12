@@ -45,7 +45,7 @@ namespace DataPersistance.Models
 
                 entity.HasIndex(e => e.ToggleGroup, "Button_ToggleGroup");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
 
                 entity.Property(e => e.LastActivation).HasColumnType("timestamp(0) without time zone");
 
@@ -82,7 +82,7 @@ namespace DataPersistance.Models
             {
                 entity.ToTable("Feature");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
+                entity.Property(e => e.Id).UseIdentityAlwaysColumn();
 
                 entity.Property(e => e.Name).HasMaxLength(30);
 
