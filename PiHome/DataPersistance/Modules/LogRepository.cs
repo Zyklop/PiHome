@@ -17,7 +17,7 @@ namespace DataPersistance.Modules
 
         public void LogData(int moduleId, int featureId, double value)
         {
-            var config = context.LogConfiguration.Include(x => x.Feature)
+            var config = context.LogConfigurations.Include(x => x.Feature)
                 .SingleOrDefault(x => x.FeatureId == featureId && x.ModuleId == moduleId);
 
             if (config != null)
@@ -41,7 +41,7 @@ namespace DataPersistance.Modules
 
         public void LogData(int configId, int value)
         {
-            var config = context.LogConfiguration.SingleOrDefault(x => x.Id == configId);
+            var config = context.LogConfigurations.SingleOrDefault(x => x.Id == configId);
 
             if (config != null)
             {
@@ -52,7 +52,7 @@ namespace DataPersistance.Modules
         public void LogData(Dictionary<int, double> values)
         {
             var configIds = values.Keys.ToArray();
-            var configs = context.LogConfiguration.Include(x => x.Feature).Where(x => configIds.Contains(x.Id))
+            var configs = context.LogConfigurations.Include(x => x.Feature).Where(x => configIds.Contains(x.Id))
                 .ToDictionary(x => x.Id, x => x);
             foreach (var value in values)
             {
@@ -74,7 +74,7 @@ namespace DataPersistance.Modules
 
         public List<Log> GetLogs(int logConfigId, DateTime from, DateTime to)
         {
-            return context.Log
+            return context.Logs
                 .Where(x => x.LogConfigurationId == logConfigId && x.Time > from && x.Time < to)
                 .AsNoTracking()
                 .ToList();
@@ -82,9 +82,9 @@ namespace DataPersistance.Modules
 
         public List<Log> GetLogs(int moduleId, int featureId, DateTime from, DateTime to)
         {
-            return context.LogConfiguration
+            return context.LogConfigurations
                 .Where(x => x.ModuleId == moduleId && x.FeatureId == featureId)
-                .SelectMany(x => x.Log)
+                .SelectMany(x => x.Logs)
                 .Where(x => x.Time > from && x.Time < to)
                 .AsNoTracking()
                 .OrderBy(x => x.Time)
@@ -93,24 +93,24 @@ namespace DataPersistance.Modules
 
         public List<LogConfiguration> GetConfigurationsToUpdate(int moduleId)
         {
-            return context.LogConfiguration.Where(x => x.ModuleId == moduleId && x.NextPoll < DateTime.UtcNow)
+            return context.LogConfigurations.Where(x => x.ModuleId == moduleId && x.NextPoll < DateTime.Now)
                 .AsNoTracking().ToList();
         }
 
         public void DeleteOldLogs(int moduleId)
         {
-            var configs = context.LogConfiguration.Where(x => x.ModuleId == moduleId && x.RetensionTime != null)
+            var configs = context.LogConfigurations.Where(x => x.ModuleId == moduleId && x.RetensionTime != null)
                 .AsNoTracking();
             var logsToRem = new List<Log>();
             foreach (var config in configs)
             {
                 var data = DateTime.UtcNow.Subtract(config.RetensionTime.Value);
-                logsToRem.AddRange(context.Log.Where(x => x.LogConfigurationId == config.Id && x.Time < data));
+                logsToRem.AddRange(context.Logs.Where(x => x.LogConfigurationId == config.Id && x.Time < data));
             }
 
             if (logsToRem.Any())
             {
-                context.Log.RemoveRange(logsToRem);
+                context.Logs.RemoveRange(logsToRem);
                 context.SaveChanges();
             }
         }

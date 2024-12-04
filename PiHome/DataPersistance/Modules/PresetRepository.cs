@@ -18,7 +18,7 @@ namespace DataPersistance.Modules
 
         public List<LedValue> GetAllLeds()
         {
-            return context.Led.AsNoTracking().Select(x => new LedValue
+            return context.Leds.AsNoTracking().Select(x => new LedValue
             {
                 Id = x.Id,
                 ModuleId = x.ModuleId,
@@ -31,7 +31,7 @@ namespace DataPersistance.Modules
 
         public ILookup<Module, LedValue> GetPreset(string name)
         {
-            return context.LedPreset.AsNoTracking()
+            return context.LedPresets.AsNoTracking()
                 .Where(x => x.Name == name)
                 .SelectMany(x => x.LedPresetValues)
                 .Select(x => new
@@ -52,13 +52,13 @@ namespace DataPersistance.Modules
 
         public void UpdatePresetActivation(PresetActivation presetActivation, string presetName)
         {
-            var preset = context.LedPreset.Single(x => x.Name == presetName);
-            var activation = context.PresetActivation.SingleOrDefault(x => x.Id == presetActivation.Id);
+            var preset = context.LedPresets.Single(x => x.Name == presetName);
+            var activation = context.PresetActivations.SingleOrDefault(x => x.Id == presetActivation.Id);
             if (activation == null)
             {
                 presetActivation.Preset = preset;
                 CalculateNextActivation(ref presetActivation);
-                context.PresetActivation.Add(presetActivation);
+                context.PresetActivations.Add(presetActivation);
             }
             else
             {
@@ -73,13 +73,13 @@ namespace DataPersistance.Modules
 
         public PresetActivation[] GetAllPresetActivations()
         {
-            return context.PresetActivation.Include(x => x.Preset).AsNoTracking().ToArray();
+            return context.PresetActivations.Include(x => x.Preset).AsNoTracking().ToArray();
         }
 
         public string GetPresetToActivate()
         {
-            var pa = context.PresetActivation.Include(x => x.Preset)
-                .FirstOrDefault(x => x.NextActivationTime < DateTime.UtcNow);
+            var pa = context.PresetActivations.Include(x => x.Preset)
+                .FirstOrDefault(x => x.NextActivationTime < DateTime.Now);
             if (pa != null)
             {
                 CalculateNextActivation(ref pa);
@@ -91,19 +91,18 @@ namespace DataPersistance.Modules
 
         private void CalculateNextActivation(ref PresetActivation presetActivation)
         {
-            if (!presetActivation.Active[0])
+            if (!presetActivation.Active)
             {
                 presetActivation.NextActivationTime = DateTime.MaxValue;
             }
             var res = DateTime.Today;
-            res += presetActivation.ActivationTime;
             var currentWeekday = res.DayOfWeek;
             for (int i = 1; i <= 8; i++)
             {
                 if (i == 8)
                 {
                     res = res.AddDays(1);
-                    presetActivation.Active[0] = false;
+                    presetActivation.Active = false;
                     break;
                 }
                 var index = i + (int)currentWeekday;
@@ -120,15 +119,15 @@ namespace DataPersistance.Modules
             presetActivation.NextActivationTime = res;
         }
 
-        public string[] GetAllPresets()
+        public Dictionary<int, string> GetAllPresets()
         {
-            return context.LedPreset.AsNoTracking().Select(x => x.Name).ToArray();
+            return context.LedPresets.AsNoTracking().ToDictionary(x => x.Id, x => x.Name);
         }
 
         public void SavePreset(string name, IEnumerable<LedValue> ledValues, DateTime changeDate)
         {
             var leds = ledValues.ToArray();
-            var preset = context.LedPreset.Include(x => x.LedPresetValues).SingleOrDefault(x => x.Name == name);
+            var preset = context.LedPresets.Include(x => x.LedPresetValues).SingleOrDefault(x => x.Name == name);
             if (preset != null && changeDate < preset.ChangeDate)
             {
                 return;
@@ -138,7 +137,7 @@ namespace DataPersistance.Modules
             if (preset == null)
             {
                 preset = new LedPreset { Name = name, ChangeDate = changeDate };
-                context.LedPreset.Add(preset);
+                context.LedPresets.Add(preset);
             }
             else
             {
@@ -151,7 +150,7 @@ namespace DataPersistance.Modules
                     var value = preset.LedPresetValues.SingleOrDefault(x => x.LedId == led.Id);
                     if (value == null)
                     {
-                        value = new LedPresetValues
+                        value = new LedPresetValue
                         { LedId = led.Id, Preset = preset, Color = led.Color.ToRGBB() };
                         preset.LedPresetValues.Add(value);
                         context.LedPresetValues.Add(value);
@@ -175,8 +174,8 @@ namespace DataPersistance.Modules
 
         public LedValue[] ToLedValues(IEnumerable<LedPresetDto> dtoValues)
         {
-            var modules = context.Module.AsNoTracking().ToDictionary(x => x.Name, x => x.Id);
-            var ledsFromDb = context.Led.AsTracking().GroupBy(x => x.ModuleId).ToDictionary(x => x.Key, x => x.ToDictionary(y => y.Index, y => y.Id));
+            var modules = context.Modules.AsNoTracking().ToDictionary(x => x.Name, x => x.Id);
+            var ledsFromDb = context.Leds.AsTracking().GroupBy(x => x.ModuleId).ToDictionary(x => x.Key, x => x.ToDictionary(y => y.Index, y => y.Id));
             return dtoValues.Select(x =>
             {
                 var mId = modules[x.ModuleName];
@@ -194,8 +193,8 @@ namespace DataPersistance.Modules
 
         public void DeletePreset(string name)
         {
-            var preset = context.LedPreset.Single(x => x.Name == name);
-            context.LedPreset.Remove(preset);
+            var preset = context.LedPresets.Single(x => x.Name == name);
+            context.LedPresets.Remove(preset);
             context.SaveChanges();
         }
     }

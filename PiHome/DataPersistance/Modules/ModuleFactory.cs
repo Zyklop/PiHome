@@ -19,12 +19,12 @@ namespace DataPersistance.Modules
 
         public List<Module> GetAllModules()
         {
-            return context.Module.AsNoTracking().ToList();
+            return context.Modules.AsNoTracking().ToList();
         }
 
         public List<Feature> GetFeatures()
         {
-            return context.Feature.AsNoTracking().ToList();
+            return context.Features.AsNoTracking().ToList();
         }
 
         public void AddLedValues(IEnumerable<LedValue> values)
@@ -33,10 +33,10 @@ namespace DataPersistance.Modules
             foreach (var ledValue in leds)
             {
                 var existing =
-                    context.Led.FirstOrDefault(x => x.ModuleId == ledValue.ModuleId && x.Index == ledValue.Index);
+                    context.Leds.FirstOrDefault(x => x.ModuleId == ledValue.ModuleId && x.Index == ledValue.Index);
                 if (existing == null)
                 {
-                    context.Led.Add(new Led
+                    context.Leds.Add(new Led
                     {
                         ModuleId = ledValue.ModuleId,
                         Index = ledValue.Index,
@@ -53,9 +53,9 @@ namespace DataPersistance.Modules
 
         public void AddFeature(int moduleId, int featureId, TimeSpan interval)
         {
-            var module = context.Module.Single(x => x.Id == moduleId);
+            var module = context.Modules.Single(x => x.Id == moduleId);
             module.FeatureIds = module.FeatureIds.Union(new[] { featureId }).ToArray();
-            module.LogConfiguration.Add(new LogConfiguration
+            module.LogConfigurations.Add(new LogConfiguration
             {
                 FeatureId = featureId,
                 Interval = interval,
@@ -66,20 +66,20 @@ namespace DataPersistance.Modules
 
         public void UpdateIp(int moduleId, IPAddress moduleIp)
         {
-            var module = context.Module.Single(x => x.Id == moduleId);
+            var module = context.Modules.Single(x => x.Id == moduleId);
             module.Ip = moduleIp;
             context.SaveChanges();
         }
 
         public Module GetModule(int id)
         {
-            var module = context.Module.Include(x => x.Led).AsNoTracking().Single(x => x.Id == id);
+            var module = context.Modules.Include(x => x.Leds).AsNoTracking().Single(x => x.Id == id);
             return module;
         }
 
         public (string FeatureName, int FeatureId, int Value)[] GetAllValues(int moduleId)
         {
-            return context.Log.AsNoTracking()
+            return context.Logs.AsNoTracking()
                 .Where(x => x.LogConfiguration.ModuleId == moduleId)
                 .OrderByDescending(x => x.Time)
                 .GroupBy(x => x.LogConfiguration.FeatureId,
@@ -92,24 +92,24 @@ namespace DataPersistance.Modules
 
         public Feature GetFeature(int featureId)
         {
-            return context.Feature.AsNoTracking().Single(x => x.Id == featureId);
+            return context.Features.AsNoTracking().Single(x => x.Id == featureId);
         }
 
         public void RemoveFeature(int moduleId, int featureId)
         {
-            var module = context.Module.Include(x => x.LogConfiguration).Single(x => x.Id == moduleId);
+            var module = context.Modules.Include(x => x.LogConfigurations).Single(x => x.Id == moduleId);
             module.FeatureIds = module.FeatureIds.Except(new[] { featureId }).ToArray();
-            var logConfig = module.LogConfiguration.Where(x => x.FeatureId == featureId);
+            var logConfig = module.LogConfigurations.Where(x => x.FeatureId == featureId);
             foreach (var config in logConfig)
             {
-                context.LogConfiguration.Remove(config);
+                context.LogConfigurations.Remove(config);
             }
             context.SaveChanges();
         }
 
         public void Update(int id, string moduleName, IPAddress address)
         {
-            var module = context.Module.Single(x => x.Id == id);
+            var module = context.Modules.Single(x => x.Id == id);
             module.Name = moduleName;
             module.Ip = address;
             context.SaveChanges();
@@ -123,7 +123,7 @@ namespace DataPersistance.Modules
                 Name = moduleName,
                 FeatureIds = Array.Empty<int>()
             };
-            context.Module.Add(module);
+            context.Modules.Add(module);
             context.SaveChanges();
         }
     }

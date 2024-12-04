@@ -30,6 +30,7 @@ namespace PiUi
             services.AddTransient<ModuleFactory>();
             services.AddTransient<LedController>();
             services.AddTransient<PresetRepository>();
+            services.AddTransient<ButtonRepository>();
             services.AddTransient<LogRepository>();
             services.AddMvc(options => options.EnableEndpointRouting = false).AddNewtonsoftJson();
         }

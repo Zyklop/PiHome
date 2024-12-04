@@ -37,7 +37,7 @@ namespace PiUi.Controllers
         public ActionResult Create()
         {
             var presets = ledController.GetAllPresets();
-            var model = new PresetActivationModel(){AllPresets = presets.ToArray(), Active = true};
+            var model = new PresetActivationModel(){AllPresets = presets.Values.ToArray(), Active = true};
             return View(model);
         }
 
@@ -46,7 +46,7 @@ namespace PiUi.Controllers
         {
             var presets = ledController.GetAllPresets();
             var activation = ledController.GetAllActivations().Single(x => x.Id == id);
-            var model = new PresetActivationModel(activation, presets.ToArray());
+            var model = new PresetActivationModel(activation, presets.Values.ToArray());
             return View(nameof(Create), model);
         }
 
@@ -57,9 +57,9 @@ namespace PiUi.Controllers
             var pa = new PresetActivation
             {
                 Id = model.Id,
-                ActivationTime = model.ActivationTime,
-                Active = new BitArray(new [] {model.Active}),
-                DaysOfWeek = new BitArray(new [] {model.Sunday, model.Monday, model.Tuesday, model.Wednesday, model.Thursday, model.Friday, model.Saturday})
+                ActivationTime = new TimeOnly(model.ActivationTime.Ticks),
+                Active = model.Active,
+                DaysOfWeek = new [] {model.Sunday, model.Monday, model.Tuesday, model.Wednesday, model.Thursday, model.Friday, model.Saturday}
             };
             ledController.SavePresetActivation(pa, model.SelectedPreset);
 
