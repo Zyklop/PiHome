@@ -8,11 +8,11 @@ using NpgsqlTypes;
 
 namespace DataPersistance.Modules
 {
-    public class ModuleFactory
+    public class ModuleRepository
     {
         private readonly PiHomeContext context;
 
-        public ModuleFactory(PiHomeContext context)
+        public ModuleRepository(PiHomeContext context)
         {
             this.context = context;
         }

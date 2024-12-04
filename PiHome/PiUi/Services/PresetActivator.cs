@@ -36,7 +36,7 @@ namespace PiUi.Services
                         var preset = scope.ServiceProvider.GetService<PresetRepository>().GetPresetToActivate();
                         if (preset != null)
                         {
-                            scope.ServiceProvider.GetService<LedController>().Activate(preset);
+                            scope.ServiceProvider.GetService<LedController>().Activate(preset, true);
                         }
                     }
                 }

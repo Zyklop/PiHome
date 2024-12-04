@@ -15,10 +15,12 @@ namespace PiUi.Services
         private readonly IServiceScopeFactory scopeFactory;
         private CancellationTokenSource canceller;
         private ManualResetEvent stopDetector = new ManualResetEvent(false);
+        private readonly CommunicatorFactory commFac;
 
-        public LoggingService(IServiceScopeFactory scopeFactory)
+        public LoggingService(IServiceScopeFactory scopeFactory, CommunicatorFactory commFac)
         {
             this.scopeFactory = scopeFactory;
+            this.commFac = commFac;
             canceller = new CancellationTokenSource();
         }
 
@@ -36,12 +38,12 @@ namespace PiUi.Services
                     await using (var scope = scopeFactory.CreateAsyncScope())
                     {
                         var logRepository = scope.ServiceProvider.GetService<LogRepository>();
-                        var moduleFactory = scope.ServiceProvider.GetService<ModuleFactory>();
+                        var moduleFactory = scope.ServiceProvider.GetService<ModuleRepository>();
                         foreach (var module in moduleFactory.GetAllModules())
                         {
                             var logsToUpdate = logRepository.GetConfigurationsToUpdate(module.Id);
                             var res = new Dictionary<int, double>();
-                            var sensor = new SensorCommunicator(module.Ip);
+                            var sensor = commFac.GetSensorCommunicator(module.Ip);
                             foreach (var logConfiguration in logsToUpdate)
                             {
                                 res.Add(logConfiguration.Id, GetValue(sensor, logConfiguration.FeatureId));

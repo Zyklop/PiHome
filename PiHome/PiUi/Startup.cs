@@ -1,4 +1,5 @@
-﻿using Coordinator.Modules;
+﻿using Communication.ApiCommunication;
+using Coordinator.Modules;
 using DataPersistance.Models;
 using DataPersistance.Modules;
 using Microsoft.AspNetCore.Builder;
@@ -25,9 +26,10 @@ namespace PiUi
             services.AddDbContext<PiHomeContext>(options => {
                 options.UseNpgsql(Configuration.GetConnectionString("Postgres"));
             });
+            services.AddSingleton<CommunicatorFactory>();
             services.AddHostedService<LoggingService>();
             services.AddHostedService<PresetActivator>();
-            services.AddTransient<ModuleFactory>();
+            services.AddTransient<ModuleRepository>();
             services.AddTransient<LedController>();
             services.AddTransient<PresetRepository>();
             services.AddTransient<ButtonRepository>();

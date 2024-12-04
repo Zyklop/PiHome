@@ -13,14 +13,16 @@ namespace Coordinator.Modules
         private static readonly byte[] IgnoreData = new byte[] { 0, 0, 0, 101 };
 
         private PresetRepository repo;
-        private ModuleFactory mf;
+        private ModuleRepository mf;
         private ILogger<LedController> logger;
+        private CommunicatorFactory commFac;
 
-        public LedController(ILogger<LedController> logger, ModuleFactory mf, PresetRepository repo)
+        public LedController(ILogger<LedController> logger, ModuleRepository mf, PresetRepository repo, CommunicatorFactory commFac)
         {
             this.logger = logger;
             this.mf = mf;
             this.repo = repo;
+            this.commFac = commFac;
         }
 
         public List<LedValue> GetAllLeds()
@@ -53,23 +55,23 @@ namespace Coordinator.Modules
             repo.DeletePreset(name);
         }
 
-        public void Activate(string name)
+        public void Activate(string name, bool fade)
         {
             var preset = GetPreset(name);
-            Activate(preset);
+            Activate(preset, fade);
         }
 
-        public void Activate(IEnumerable<LedValue> ledValues)
+        public void Activate(IEnumerable<LedValue> ledValues, bool fade)
         {
             var mods = mf.GetAllModules().ToDictionary(x => x.Id, x => x);
-            Activate(ledValues.ToLookup(x => mods[x.ModuleId]));
+            Activate(ledValues.ToLookup(x => mods[x.ModuleId]), fade);
         }
 
-        public void Activate(ILookup<Module, LedValue> values)
+        public void Activate(ILookup<Module, LedValue> values, bool fade)
         {
             foreach (var valuesForModule in values)
             {
-                var communicator = new LedCommunicator(valuesForModule.Key.Ip);
+                var communicator = commFac.GetLedCommunicator(valuesForModule.Key.Ip);
                 var maxIndex = valuesForModule.Max(x => x.Index) + 1;
                 var valueLookup = valuesForModule.ToDictionary(x => x.Index, x => x.Color);
                 var arr = new byte[maxIndex * 4];
@@ -86,7 +88,7 @@ namespace Coordinator.Modules
                     }
                     data = data.Slice(4);
                 }
-                communicator.SetRGBB(arr);
+                communicator.SetRGBB(arr, fade);
             }
         }
 
@@ -94,7 +96,7 @@ namespace Coordinator.Modules
         {
             foreach (var module in mf.GetAllModules())
             {
-                var comm = new LedCommunicator(module.Ip);
+                var comm = commFac.GetLedCommunicator(module.Ip);
                 comm.TurnOff();
             }
         }

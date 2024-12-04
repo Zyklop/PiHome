@@ -6,7 +6,7 @@ namespace Communication.ApiCommunication
 {
 	public class SensorCommunicator : BaseCommunicator
 	{
-		public SensorCommunicator(IPAddress moduleIp) : base(moduleIp)
+        internal SensorCommunicator(IPAddress moduleIp) : base(moduleIp)
 		{
 		}
 
