@@ -76,7 +76,7 @@ namespace DataPersistance.Modules
             return context.PresetActivations.Include(x => x.Preset).AsNoTracking().ToArray();
         }
 
-        public string GetPresetToActivate()
+        public string? GetPresetToActivate()
         {
             var pa = context.PresetActivations.Include(x => x.Preset)
                 .FirstOrDefault(x => x.NextActivationTime < DateTime.Now);

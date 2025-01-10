@@ -102,7 +102,7 @@ namespace PiUi.Controllers
             var presetName = repo.ButtonToggled(buttonId, actionId);
             if (!string.IsNullOrEmpty(presetName))
             {
-                ledController.Activate(presetName);
+                ledController.Activate(presetName, true);
             }
             return Ok();
         }

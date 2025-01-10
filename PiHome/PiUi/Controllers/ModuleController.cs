@@ -16,13 +16,13 @@ namespace PiUi.Controllers
     public class ModuleController : Controller
     {
         private ILogger<ModuleController> logger;
-        private readonly ModuleFactory moduleFactory;
+        private readonly ModuleRepository moduleRepository;
         private readonly LogRepository logRepository;
 
-        public ModuleController(ILogger<ModuleController> logger, ModuleFactory moduleFactory, LogRepository logRepository)
+        public ModuleController(ILogger<ModuleController> logger, ModuleRepository moduleRepository, LogRepository logRepository)
         {
             this.logger = logger;
-            this.moduleFactory = moduleFactory;
+            this.moduleRepository = moduleRepository;
             this.logRepository = logRepository;
         }
 
@@ -32,18 +32,18 @@ namespace PiUi.Controllers
         {
             var vm = new ModulesViewModel
             {
-                ExtendedModules = moduleFactory.GetAllModules().Select(x => new ExtendedModuleViewModel(x)).ToArray()
+                ExtendedModules = moduleRepository.GetAllModules().Select(x => new ExtendedModuleViewModel(x)).ToArray()
             };
             return View(vm);
         }
         [HttpGet("Detail/{id}")]
         public ActionResult Details(int id)
         {
-            var module = moduleFactory.GetModule(id);
+            var module = moduleRepository.GetModule(id);
             var vm = new DetailModuleViewModel
             {
                 Module = new ExtendedModuleViewModel(module),
-                Values = moduleFactory.GetAllValues(module.Id).Select(x => new FeatureWithLastValue(x.FeatureName, x.FeatureId, x.Value.ToString())).ToArray()
+                Values = moduleRepository.GetAllValues(module.Id).Select(x => new FeatureWithLastValue(x.FeatureName, x.FeatureId, x.Value.ToString())).ToArray()
             };
             return View(vm);
         }
@@ -52,7 +52,7 @@ namespace PiUi.Controllers
         [Route("Log")]
         public ActionResult Log(int moduleId, int featureId, DateTime from = default(DateTime), DateTime to = default(DateTime), int granularity = 100)
         {
-            var module = moduleFactory.GetModule(moduleId);
+            var module = moduleRepository.GetModule(moduleId);
             if (from == default(DateTime))
             {
                 from = DateTime.UtcNow.AddDays(-1);
@@ -62,7 +62,7 @@ namespace PiUi.Controllers
                 to = DateTime.UtcNow;
             }
 
-            var feature = moduleFactory.GetFeature(featureId);
+            var feature = moduleRepository.GetFeature(featureId);
             var logs = logRepository.GetLogs(moduleId, featureId, from, to);
             var vm = new LogValuesViewModel(module.Name, feature.Name, feature.Unit,
                 logs.ToDictionary(x => x.Time, x => (decimal)x.Value), module.Id, feature.Id);
@@ -78,8 +78,8 @@ namespace PiUi.Controllers
 
         private EditModuleViewModel GetModuleViewModel(int id)
         {
-            var module = moduleFactory.GetModule(id);
-            var moduleFeatures = moduleFactory.GetFeatures().ToDictionary(x => x.Id, x => new FeatureWithLastValue(x.Name, x.Id, string.Empty));
+            var module = moduleRepository.GetModule(id);
+            var moduleFeatures = moduleRepository.GetFeatures().ToDictionary(x => x.Id, x => new FeatureWithLastValue(x.Name, x.Id, string.Empty));
             var vm = new EditModuleViewModel
             {
                 ModuleId = module.Id,
@@ -101,7 +101,7 @@ namespace PiUi.Controllers
             }
             try
             {
-                moduleFactory.Update(id, model.ModuleName, ip);
+                moduleRepository.Update(id, model.ModuleName, ip);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -128,7 +128,7 @@ namespace PiUi.Controllers
             }
             try
             {
-                moduleFactory.Create(model.ModuleName, ip);
+                moduleRepository.Create(model.ModuleName, ip);
 
                 return RedirectToAction(nameof(Index));
             }
@@ -142,7 +142,7 @@ namespace PiUi.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult AddFeature(EditModuleViewModel model)
         {
-            moduleFactory.AddFeature(model.ModuleId, model.FeatureToAdd, TimeSpan.Parse(model.Interval));
+            moduleRepository.AddFeature(model.ModuleId, model.FeatureToAdd, TimeSpan.Parse(model.Interval));
 
             return View("Edit", GetModuleViewModel(model.ModuleId));
         }
@@ -151,7 +151,7 @@ namespace PiUi.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteFeature(EditModuleViewModel model)
         {
-            moduleFactory.RemoveFeature(model.ModuleId, model.FeatureToDelete);
+            moduleRepository.RemoveFeature(model.ModuleId, model.FeatureToDelete);
             return View("Edit", GetModuleViewModel(model.ModuleId));
         }
 
@@ -176,7 +176,7 @@ namespace PiUi.Controllers
                         Y = model.StartY + ydiff * i
                     });
                 }
-                moduleFactory.AddLedValues(ledValues);
+                moduleRepository.AddLedValues(ledValues);
 
                 return RedirectToAction(nameof(Index));
             }

@@ -71,7 +71,7 @@ namespace PiUi.Controllers
         [HttpGet("Activate/{name}")]
         public ActionResult Activate(string name)
         {
-            ledController.Activate(name);
+            ledController.Activate(name, true);
             return RedirectToAction("Index");
         }
 
@@ -101,7 +101,7 @@ namespace PiUi.Controllers
         [IgnoreAntiforgeryToken]
         public ActionResult Preview([FromBody] PresetViewModel collection)
         {
-            ledController.Activate(ConvertBack(collection.LedValues));
+            ledController.Activate(ConvertBack(collection.LedValues), false);
             return RedirectToAction(nameof(Edit), collection.Name);
         }
 
