@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Ambilight.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Ambilight.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="1" Text="Graphics Card"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding GraphicCards}" SelectedItem="{Binding SelectedCard}"/>
+        <TextBlock Grid.Row="2" Text="Display"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Displays}" SelectedItem="{Binding SelectedDisplay}"/>
+        <Button Grid.Column="2" Command="{Binding RefreshCommand}" IsEnabled="{Binding CanRefresh}">Refresh</Button>
+        <Grid Grid.Row="3" Grid.ColumnSpan="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Image  Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="{Binding ScreenPreview}" PointerPressed="DragStarted" PointerReleased="DragReleased"/>
+        <Rectangle Name="rectArea" Fill="#88ff0000" Stroke="Red" StrokeThickness="2" IsVisible="{Binding ShowArea}"/>
+        </Grid>
+    </Grid>
+</UserControl>
