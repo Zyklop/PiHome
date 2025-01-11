@@ -22,4 +22,9 @@
     <PackageReference Include="ScreenCapture.NET.DX11" Version="3.0.0" />
     <PackageReference Include="ScreenCapture.NET.X11" Version="3.0.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Communication\Communication.csproj" />
+    <ProjectReference Include="..\DataPersistance\DataPersistance.csproj" />
+  </ItemGroup>
 </Project>
