@@ -170,18 +170,43 @@ public class ScreenReader
                             sumBuffer[target] += raw[i];
                         }
                     }
+                }
 
-                    for (int i = 0; i < numLeds; i++)
+                for (int i = 0; i < numLeds; i++)
+                {
+                    var mapped = flip ? end - 1 - i : i + start;
+                    var numValues = (ulong)(zone.Height * rowPerLed[i]);
+                    var red = (byte)(sumBuffer[i * 3] / numValues);
+                    var green = (byte)(sumBuffer[i * 3 + 1] / numValues);
+                    var blue = (byte)(sumBuffer[i * 3 + 2] / numValues);
+                    var maxValue = red;
+                    if (green > maxValue)
                     {
-                        var mapped = flip ? end - 1 - i : i + start;
-                        var numValues = (ulong)(zone.Height * rowPerLed[i]);
-                        sendBuffer[mapped * 4] = (byte)(sumBuffer[i * 3] / numValues);
-                        sendBuffer[mapped * 4 + 1] = (byte)(sumBuffer[i * 3 + 1] / numValues);
-                        sendBuffer[mapped * 4 + 2] = (byte)(sumBuffer[i * 3 + 2] / numValues);
+                        maxValue = green;
                     }
 
-                    comm.SetRGBB(sendBuffer, false);
+                    if (blue > maxValue)
+                    {
+                        maxValue = blue;
+                    }
+
+                    var b = brightness;
+                    if (maxValue < 50)
+                    {
+                        b /= 4;
+                    }
+                    else if (maxValue < 100)
+                    {
+                        b /= 2;
+                    }
+
+                    sendBuffer[mapped * 4] = red;
+                    sendBuffer[mapped * 4 + 1] = green;
+                    sendBuffer[mapped * 4 + 2] = blue;
+                    sendBuffer[mapped * 4 + 3] = b;
                 }
+
+                comm.SetRGBB(sendBuffer, false);
 
                 //await Task.Delay(50);
             }
