@@ -22,7 +22,7 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
     private readonly string settingsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PiHome", "ambilight-user_settings.json");
 
     private ScreenReader.ScreenReader reader = new();
-    private ModuleRepository repo = new ModuleRepository(new PiHomeContext());
+    private ModuleRepository repo = new(new PiHomeContext());
 
     private (string Name, int DeviceId) selectedCard;
     private ObservableCollection<(string Name, int Index)> displays = new();
@@ -125,18 +125,6 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
         OnPropertyChanged(nameof(CanStop));
     });
 
-    public void AreaSet(double x, double y, double width, double height)
-    {
-        xArea = x;
-        yArea = y;
-        areaWidth = width;
-        areaHeight = height;
-        reader.SetArea(x, y, width, height);
-        ShowArea = true;
-        OnPropertyChanged(nameof(ShowArea));
-        OnPropertyChanged(nameof(CanStart));
-    }
-
     public ICommand SaveCommand => new RelayCommand(() =>
     {
         var settings = new PersistentSettings
@@ -160,6 +148,23 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
         fs.Flush();
         fs.Close();
     });
+
+    public MainViewModel()
+    {
+        ReadSettings();
+    }
+
+    public void AreaSet(double x, double y, double width, double height)
+    {
+        xArea = x;
+        yArea = y;
+        areaWidth = width;
+        areaHeight = height;
+        reader.SetArea(x, y, width, height);
+        ShowArea = true;
+        OnPropertyChanged(nameof(ShowArea));
+        OnPropertyChanged(nameof(CanStart));
+    }
 
     private void ReadSettings()
     {

@@ -47,7 +47,11 @@
         <Button Grid.Row="2" Grid.Column="2" Command="{Binding RefreshCommand}" IsEnabled="{Binding CanRefresh}">Refresh</Button>
         <Button Grid.Row="2" Grid.Column="3" Command="{Binding StartCommand}" IsEnabled="{Binding CanStart}">Start</Button>
         <Button Grid.Row="2" Grid.Column="4" Command="{Binding StopCommand}" IsEnabled="{Binding CanStop}">Stop</Button>
-        
+        <StackPanel Grid.Row="2" Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <TextBlock>Autostart</TextBlock>
+            <CheckBox IsChecked="{Binding Autostart}"/>
+            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding SaveCommand}">Save Settings</Button>
+        </StackPanel>
         <Grid Grid.Row="3" Grid.ColumnSpan="6" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Image  Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="{Binding ScreenPreview}" PointerPressed="DragStarted" PointerReleased="DragReleased"/>
         <Rectangle Name="rectArea" Fill="#88ff0000" Stroke="Red" StrokeThickness="2" IsVisible="{Binding ShowArea}"/>
