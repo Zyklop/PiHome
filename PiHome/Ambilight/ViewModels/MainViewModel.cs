@@ -143,6 +143,8 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
             Autostart = Autostart
         };
         var serialized = JsonConvert.SerializeObject(settings);
+        var file = new FileInfo(settingsPath);
+        file.Directory.Create();
         using var fs = new FileStream(settingsPath, FileMode.Create, FileAccess.Write);
         fs.Write(Encoding.UTF32.GetBytes(serialized));
         fs.Flush();
@@ -173,8 +175,8 @@ public partial class MainViewModel : ViewModelBase, INotifyPropertyChanged
             return;
         }
         using var fs = new FileStream(settingsPath, FileMode.Open, FileAccess.Read);
-        using var reader = new StreamReader(fs, Encoding.UTF32);
-        var buffer = reader.ReadToEnd();
+        using var fileReader = new StreamReader(fs, Encoding.UTF32);
+        var buffer = fileReader.ReadToEnd();
         fs.Flush();
         fs.Close();
         var settings = JsonConvert.DeserializeObject<PersistentSettings>(buffer);
