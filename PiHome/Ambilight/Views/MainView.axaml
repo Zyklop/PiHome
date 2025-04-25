@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Ambilight.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Ambilight.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="130"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="{Binding Greeting}" VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="1" Text="Graphics Card"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding GraphicCards}" SelectedItem="{Binding SelectedCard}"/>
+        <TextBlock Grid.Row="2" Text="Display"/>
+        <ComboBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" ItemsSource="{Binding Displays}" SelectedItem="{Binding SelectedDisplay}"/>
+        <TextBlock Grid.Column="2">Module</TextBlock>
+        <ComboBox Grid.Column="3" HorizontalAlignment="Stretch" ItemsSource="{Binding Modules}" SelectedItem="{Binding SelectedModule}"/>
+        <StackPanel Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <TextBlock>From</TextBlock>
+            <TextBox Text="{Binding StartIndex}" Width="100"/>
+            <TextBlock>To</TextBlock>
+            <TextBox Text="{Binding EndIndex}" Width="100"/>
+        </StackPanel>
+        <TextBlock Grid.Column="4">Mirror</TextBlock>
+        <CheckBox Grid.Column="5" IsChecked="{Binding Flip}"/>
+        <TextBlock Grid.Row="1" Grid.Column="4">Brightness</TextBlock>
+        <Slider Grid.Row="1" Grid.Column="5" Minimum="0" Maximum="100" Value="{Binding Brightness}"></Slider>
+
+        <Button Grid.Row="2" Grid.Column="2" Command="{Binding RefreshCommand}" IsEnabled="{Binding CanRefresh}">Refresh</Button>
+        <Button Grid.Row="2" Grid.Column="3" Command="{Binding StartCommand}" IsEnabled="{Binding CanStart}">Start</Button>
+        <Button Grid.Row="2" Grid.Column="4" Command="{Binding StopCommand}" IsEnabled="{Binding CanStop}">Stop</Button>
+        <StackPanel Grid.Row="2" Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <TextBlock>Autostart</TextBlock>
+            <CheckBox IsChecked="{Binding Autostart}"/>
+            <Button Command="{Binding SaveCommand}" IsEnabled="{Binding SaveCommand}">Save Settings</Button>
+        </StackPanel>
+        <Grid Grid.Row="3" Grid.ColumnSpan="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Image  Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="{Binding ScreenPreview}" PointerPressed="DragStarted" PointerReleased="DragReleased"/>
+        <Rectangle Name="rectArea" Fill="#88ff0000" Stroke="Red" StrokeThickness="2" IsVisible="{Binding ShowArea}"/>
+        </Grid>
+    </Grid>
+</UserControl>
