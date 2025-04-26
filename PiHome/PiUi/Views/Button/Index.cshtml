@@ -6,8 +6,17 @@
 }
 
 <h2>Buttons</h2>
+
+@foreach(var button in Model.Buttons)
+{
+        @using (Html.BeginForm("Edit", "Button", FormMethod.Post, htmlAttributes: new {Id =$"b{button.Id}"}))
+        {
+            @Html.HiddenFor(x => button.Id)
+        }
+}
 <table>
     <tr>
+        <td></td>
         <td>Name</td>
         <td>Toggle Group</td>
         <td>Is On</td>
@@ -17,16 +26,12 @@
     @foreach(var button in Model.Buttons)
     {
         <tr>
-        @using (Html.BeginForm("Edit", "Button", FormMethod.Post))
-        {
-            @Html.HiddenFor(x => button.Id)
-                <td>@Html.TextBoxFor(x => button.Name)</td>
-                <td>@Html.TextBoxFor(x => button.ToggleGroup)</td>
-                <td>@button.IsOn</td>
-                <td>
-                    <button type="submit">Save</button>
-                </td>
-        }
+            <td>@Html.TextBoxFor(x => button.Name, htmlAttributes: new { form = $"b{button.Id}" })</td>
+            <td>@Html.TextBoxFor(x => button.ToggleGroup, htmlAttributes: new { form = $"b{button.Id}" })</td>
+            <td>@button.IsOn</td>
+            <td>
+                <button type="submit" form=@("b"+button.Id)>Save</button>
+            </td>
             <td>@Html.ActionLink("Delete", "Delete", "Button", new { id = button.Id })</td>
         </tr>
     }
@@ -34,6 +39,7 @@
     @using (Html.BeginForm("Add", "Button", FormMethod.Post))
     {
         <tr>
+            <td></td>
             <td>@Html.TextBox(nameof(ButtonViewModel.Name))</td>
             <td>@Html.TextBox(nameof(ButtonViewModel.ToggleGroup))</td>
             <td></td>
