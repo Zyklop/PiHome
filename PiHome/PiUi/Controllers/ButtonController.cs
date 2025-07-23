@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Coordinator.Modules;
 using DataPersistance.Modules;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PiUi.Models;
 
 namespace PiUi.Controllers
@@ -13,11 +17,13 @@ namespace PiUi.Controllers
     {
         private readonly ButtonRepository repo;
         private readonly LedController ledController;
+        private ILogger<ButtonController> logger;
 
-        public ButtonController(ButtonRepository repo, LedController ledController)
+        public ButtonController(ButtonRepository repo, LedController ledController, ILogger<ButtonController> logger)
         {
             this.repo = repo;
             this.ledController = ledController;
+            this.logger = logger;
         }
 
         [Route("")]
@@ -106,5 +112,41 @@ namespace PiUi.Controllers
             }
             return Ok();
         }
+
+        [HttpGet("{buttonId}/Action/{actionId}/HomeAssistant")]
+        [IgnoreAntiforgeryToken]
+        public string GetButton(int buttonId, int actionId)
+        {
+            return repo.ButtonIsToggled(buttonId) ? "ON" : "OFF";
+        }
+
+        [HttpPost("{buttonId}/Action/{actionId}/HomeAssistant")]
+        [IgnoreAntiforgeryToken]
+        public async Task<ActionResult> SetButton(int buttonId, int actionId)
+        {
+            var isOn = false;
+            using (StreamReader reader
+                   = new StreamReader(Request.Body, Encoding.ASCII, true, 1024, true))
+            {
+                var bodyContent = await reader.ReadToEndAsync();
+                if (bodyContent.Contains("ON"))
+                {
+                    isOn = true;
+                }
+                else if (!bodyContent.Contains("OFF"))
+                {
+                    logger.LogWarning("Request body expected ON or OFF, but was {0}", bodyContent);
+                    return BadRequest();
+                }
+            }
+
+            var presetName = repo.ButtonSetValue(buttonId, actionId, isOn);
+            if (!string.IsNullOrEmpty(presetName))
+            {
+                ledController.Activate(presetName, true);
+            }
+            return Ok();
+        }
+
     }
 }

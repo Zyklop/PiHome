@@ -136,7 +136,7 @@ namespace DataPersistance.Modules
             using var trans = context.Database.BeginTransaction();
             if (preset == null)
             {
-                preset = new LedPreset { Name = name, ChangeDate = changeDate };
+                preset = new LedPreset { Name = name, ChangeDate = DateTime.SpecifyKind(changeDate, DateTimeKind.Unspecified)};
                 context.LedPresets.Add(preset);
             }
             else

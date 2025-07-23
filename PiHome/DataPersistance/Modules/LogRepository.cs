@@ -31,7 +31,7 @@ namespace DataPersistance.Modules
             var log = new Log
             {
                 LogConfigurationId = config.Id,
-                Time = DateTime.UtcNow,
+                Time = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                 Value = value
             };
             config.NextPoll = DateTime.UtcNow.Add(config.Interval);
@@ -59,13 +59,13 @@ namespace DataPersistance.Modules
                 context.Add(new Log
                 {
                     LogConfigurationId = value.Key,
-                    Time = DateTime.UtcNow,
+                    Time = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                     Value = (int)Math.Round(value.Value * configs[value.Key].Feature.LogFactor),
                 });
                 configs.TryGetValue(value.Key, out var lc);
                 if (lc != null)
                 {
-                    lc.NextPoll = DateTime.UtcNow.Add(lc.Interval);
+                    lc.NextPoll = DateTime.SpecifyKind(DateTime.UtcNow.Add(lc.Interval), DateTimeKind.Unspecified);
                 }
             }
 
@@ -85,7 +85,7 @@ namespace DataPersistance.Modules
             return context.LogConfigurations
                 .Where(x => x.ModuleId == moduleId && x.FeatureId == featureId)
                 .SelectMany(x => x.Logs)
-                .Where(x => x.Time > from && x.Time < to)
+                .Where(x => x.Time > DateTime.SpecifyKind(from, DateTimeKind.Unspecified) && x.Time < DateTime.SpecifyKind(to, DateTimeKind.Unspecified))
                 .AsNoTracking()
                 .OrderBy(x => x.Time)
                 .ToList();
@@ -93,7 +93,7 @@ namespace DataPersistance.Modules
 
         public List<LogConfiguration> GetConfigurationsToUpdate(int moduleId)
         {
-            return context.LogConfigurations.Where(x => x.ModuleId == moduleId && x.NextPoll < DateTime.Now)
+            return context.LogConfigurations.Where(x => x.ModuleId == moduleId && x.NextPoll < DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified))
                 .AsNoTracking().ToList();
         }
 

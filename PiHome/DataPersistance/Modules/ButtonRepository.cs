@@ -95,4 +95,37 @@ public class ButtonRepository
 
         return presetName;
     }
+
+    public string? ButtonSetValue(int buttonId, int actionId, bool toggled)
+    {
+        string? presetName;
+        var mapping = context.ButtonMappings
+            .Include(x => x.ToggleOnPreset)
+            .Include(x => x.ToggleOffPreset)
+            .Include(x => x.Button)
+            .Single(x => x.ActionId == actionId && x.ButtonId == buttonId);
+        presetName = toggled ? mapping.ToggleOnPreset?.Name : mapping.ToggleOffPreset?.Name;
+
+        if (mapping.Button.Toggled != toggled)
+        {
+            var groupButtons = context.Buttons
+                .Where(x => x.ToggleGroup == mapping.Button.ToggleGroup)
+                .AsEnumerable();
+            foreach (var button in groupButtons)
+            {
+                button.Toggled = toggled;
+            }
+        }
+        mapping.Button.LastActivation = DateTime.Now;
+        context.SaveChanges();
+
+        return presetName;
+    }
+
+    public bool ButtonIsToggled(int buttonId)
+    {
+        var mapping = context.Buttons
+            .Single(x => x.Id == buttonId);
+        return mapping.Toggled;
+    }
 }

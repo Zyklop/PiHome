@@ -59,7 +59,7 @@ namespace DataPersistance.Modules
             {
                 FeatureId = featureId,
                 Interval = interval,
-                NextPoll = DateTime.UtcNow
+                NextPoll = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             });
             context.SaveChanges();
         }

@@ -34,6 +34,12 @@ namespace PiUi.Controllers
             return View(presetModel);
         }
 
+        [HttpGet("Api")]
+        public string[] AllPresets()
+        {
+            return ledController.GetAllPresets().Values.ToArray();
+        }
+
         [Route("Create")]
         public ActionResult Create()
         {
@@ -73,6 +79,13 @@ namespace PiUi.Controllers
         {
             ledController.Activate(name, true);
             return RedirectToAction("Index");
+        }
+
+        [HttpGet("/Api/Activate/{name}")]
+        public ActionResult ActivateApi(string name)
+        {
+            ledController.Activate(name, true);
+            return Ok();
         }
 
         [HttpGet("Delete/{name}")]
