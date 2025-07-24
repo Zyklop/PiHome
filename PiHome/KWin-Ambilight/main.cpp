@@ -1,4 +1,5 @@
 #define _DEBUG !NDEBUG // from CMake
+//#define SAVE_PREVIEW
 
 #include <cerrno>
 #include <fcntl.h>
@@ -107,6 +108,15 @@ int main()
 		std::cerr << "Warning: screenshot format is not 'raw'. Proceeding, but data may be corrupt.\n";
 	}
 
+#ifdef SAVE_PREVIEW
+	QImage img(width, height, (QImage::Format)format);
+#endif
+
+	close(pipeFds[0]);
+	close(pipeFds[1]);
+
+	pipe2(pipeFds, O_CLOEXEC);
+
 	auto *sendBuffer = static_cast<unsigned char *>(calloc(end * 4, 1));
 	int numLeds = end - start;
     auto sumBuffer = static_cast<unsigned long *>(calloc(numLeds * 3, sizeof(unsigned long)));
@@ -190,12 +200,6 @@ int main()
     				colMapping[i * bytesPerPixel + 1] = ledNbr * 3 + 1;
     				colMapping[i * bytesPerPixel + 2] = ledNbr * 3 + 2;
     				break;
-    				break;
-    				break;
-    				break;
-    				break;
-    				break;
-    				break;
     			case QImage::Format_RGBX8888:
     			case QImage::Format_RGBA8888:
     			case QImage::Format_RGBA8888_Premultiplied:
@@ -242,6 +246,7 @@ int main()
 			size_t readRequestLen = (bufSize < remaining) ? bufSize : remaining;
 
 			auto nRead = read(pipeFds[0], buf, readRequestLen);
+
 			auto line = index / stride;
 			if (line >= zoneX && line <= zoneX + zoneHeight) {
 				for (int i = 0; i < nRead; i++) {
@@ -249,9 +254,22 @@ int main()
 					int target = colMapping[yPos];
 					if (target > 0) {
 						sumBuffer[target] += byteBuf[i];
+#ifdef SAVE_PREVIEW
+						*(img.bits() + index + i) = 128 + byteBuf[i] / 2;
 					}
+					else {
+						*(img.bits() + index + i) = byteBuf[i];
+					}
+#else
+					}
+#endif
 				}
 			}
+#ifdef SAVE_PREVIEW
+			else {
+				memcpy(img.bits() + index, buf, nRead);
+			}
+#endif
 			if (nRead == -1)
 			{
 				perror("Pipe read error");
@@ -262,6 +280,14 @@ int main()
 			//if (line > zoneX + zoneHeight) { break; }
 			if (index >= needToRead) { break; }
 		}
+
+#ifdef SAVE_PREVIEW
+		if (!img.save("/tmp/screenshot.png", "PNG", 100))
+		{
+			std::cerr << "Failed to save PNG\n";
+			return -5;
+		}
+#endif
 
 		for (int i = 0; i < numLeds; i++)
 		{
