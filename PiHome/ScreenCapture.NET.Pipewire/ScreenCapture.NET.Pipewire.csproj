@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ScreenCapture.NET" Version="3.0.0" />
+      <PackageReference Include="Tmds.DBus.Protocol" Version="0.94.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <NativeShimSource Include="pwcap.c" />
+    </ItemGroup>
+
+    <!-- Build the .so BEFORE the copy-to-output items are gathered. -->
+    <Target Name="BuildNativeShim"
+            BeforeTargets="AssignTargetPaths;BeforeBuild"
+            Inputs="@(NativeShimSource)"
+            Outputs="$(IntermediateOutputPath)libpwcap.so">
+        <MakeDir Directories="$(IntermediateOutputPath)" />
+        <Exec Command="cc -shared -fPIC -O2 -I/usr/include/pipewire-0.3 -I/usr/include/spa-0.2 -D_REENTRANT -fno-strict-aliasing -fno-strict-overflow -o &quot;$(IntermediateOutputPath)libpwcap.so&quot; &quot;%(NativeShimSource.FullPath)&quot; -lpipewire-0.3 -lpthread"
+              Condition="'$(OS)' != 'Windows_NT'" />
+    </Target>
+
+    <!-- Static Content item: this is what flows across ProjectReference. -->
+    <ItemGroup>
+        <Content Include="$(IntermediateOutputPath)libpwcap.so"
+                 Link="libpwcap.so"
+                 CopyToOutputDirectory="PreserveNewest"
+                 CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+</Project>

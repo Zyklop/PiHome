@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Communication.ApiCommunication;
 using HPPH;
 using ScreenCapture.NET;
+using ScreenCapture.NET.Pipewire;
 
 namespace Ambilight.ScreenReader;
 
@@ -33,7 +34,14 @@ public class ScreenReader
     {
         if (OperatingSystem.IsLinux())
         {
-            screenCaptureService = new X11ScreenCaptureService();
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY")))
+            {
+                screenCaptureService = new PipewireCaptureService();
+            }
+            else
+            {
+                screenCaptureService = new X11ScreenCaptureService();
+            }
         }
         else if (OperatingSystem.IsWindows())
         {
