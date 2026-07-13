@@ -1,0 +1,17 @@
+[Desktop Entry]
+Comment=
+Exec=/bin/kwin-ambilight
+GenericName=
+Icon=system-run
+MimeType=
+Name=kwin-ambilight
+Path=/bin/
+StartupNotify=false
+Terminal=false
+TerminalOptions=\s--noclose
+Type=Application
+X-DBUS-ServiceName=
+X-DBUS-StartupType=none
+X-KDE-DBUS-Restricted-Interfaces=org.kde.kwin.Screenshot,org.kde.KWin.ScreenShot2
+X-KDE-SubstituteUID=false
+X-KDE-Username=

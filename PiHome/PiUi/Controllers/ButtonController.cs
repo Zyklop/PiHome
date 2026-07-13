@@ -54,11 +54,11 @@ namespace PiUi.Controllers
             return View(model);
         }
 
-        [HttpPost("{id}/Edit")]
+        [HttpPost("Edit")]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, ButtonViewModel model)
+        public ActionResult Edit(ButtonViewModel button)
         {
-            repo.UpdateButton(id, model.Name, model.ToggleGroup);
+            repo.UpdateButton(button.Id, button.Name, button.ToggleGroup);
             return RedirectToAction(nameof(Index));
         }
 
