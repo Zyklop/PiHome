@@ -66,15 +66,19 @@ public class ScreenReader
 
     public ReadOnlySpan<byte> GetFullscreenImage2(out int width, out int height)
     {
+        var cts = new CancellationTokenSource(500);
         ICaptureZone fullscreen = screenCapture.RegisterCaptureZone(0, 0, screenCapture.Display.Width, screenCapture.Display.Height, 0);
         width = screenCapture.Display.Width;
         height = screenCapture.Display.Height;
         screenCapture.CaptureScreen();
         ReadOnlySpan<byte> data;
-        using (fullscreen.Lock())
+        do
         {
-            data = fullscreen.RawBuffer;
-        }
+            using (fullscreen.Lock())
+            {
+                data = fullscreen.RawBuffer;
+            }
+        } while (data.IsEmpty && !cts.IsCancellationRequested);
 
         screenCapture.UnregisterCaptureZone(fullscreen);
         return data;

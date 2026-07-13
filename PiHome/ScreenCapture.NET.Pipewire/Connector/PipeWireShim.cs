@@ -116,6 +116,8 @@ public sealed class NativeStreamCapture : IDisposable
  
         // Bounded(1)+DropOldest: newest frame wins, writer never blocks the loop.
         _frames.Writer.TryWrite(captured);
+        
+        FrameReceived?.Invoke(captured);
     }
  
     public async Task<CapturedFrame?> WaitForFrameAsync(int timeoutMs, CancellationToken cancellationToken)

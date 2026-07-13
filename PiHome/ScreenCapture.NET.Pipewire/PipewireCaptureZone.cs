@@ -6,9 +6,10 @@ namespace ScreenCapture.NET.Pipewire;
 public class PipewireCaptureZone : ICaptureZone, IDisposable
 {
     NativeStreamCapture streamCapture;
-    SemaphoreSlim semaphore = new SemaphoreSlim(0, 1);
+    SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
     private bool autoUpdate;
     private byte[] rawBuffer = [];
+    private bool isDisposed = false;
 
     public PipewireCaptureZone(NativeStreamCapture captureStreamCapture, Display display, int x, int y, int width, int height, int downscaleLevel)
     {
@@ -27,7 +28,7 @@ public class PipewireCaptureZone : ICaptureZone, IDisposable
 
     private void FrameCaptured(CapturedFrame obj)
     {
-        if (semaphore.CurrentCount == 0)
+        if (semaphore.CurrentCount == 0 || isDisposed)
         {
             return;
         }
@@ -172,6 +173,7 @@ public class PipewireCaptureZone : ICaptureZone, IDisposable
 
     public void Dispose()
     {
+        isDisposed = true;
         streamCapture.FrameReceived -= FrameCaptured;
         semaphore.Dispose();
     }
